@@ -1,0 +1,29 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-label="Eltreko logo">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#42b72a" />
+      <stop offset="100%" stop-color="#93d22f" />
+    </linearGradient>
+    <style>
+      .brand { fill: #6f778d; font-family: "Segoe UI", Arial, sans-serif; font-weight: 700; }
+      .tag { fill: #667086; font-family: "Segoe UI", Arial, sans-serif; font-weight: 600; letter-spacing: 1px; }
+    </style>
+  </defs>
+  <rect width="1200" height="420" fill="none" />
+
+  <g transform="translate(40,46)">
+    <rect x="0" y="0" width="200" height="58" rx="29" fill="#53b52c" />
+    <rect x="0" y="126" width="200" height="58" rx="29" fill="#53b52c" />
+    <rect x="0" y="252" width="200" height="58" rx="29" fill="#53b52c" />
+    <path d="M72 0h93a29 29 0 0 1 0 58H48z" fill="url(#g1)" />
+    <path d="M72 126h93a29 29 0 0 1 0 58H48z" fill="url(#g1)" />
+    <path d="M72 252h93a29 29 0 0 1 0 58H48z" fill="url(#g1)" />
+    <rect x="20" y="58" width="56" height="68" rx="28" fill="#3ea226" />
+    <rect x="20" y="184" width="56" height="68" rx="28" fill="#3ea226" />
+  </g>
+
+  <g transform="translate(285,86)">
+    <text x="0" y="136" class="brand" font-size="152" letter-spacing="1.6">ELTREKO</text>
+    <text x="4" y="226" class="tag" font-size="58">KOMPLEKSOWA OBSLUGA NIERUCHOMOSCI</text>
+  </g>
+</svg>

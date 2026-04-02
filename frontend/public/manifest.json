@@ -1,0 +1,22 @@
+{
+  "name": "EltrekoAPP",
+  "short_name": "EltrekoAPP",
+  "description": "Wewnętrzny system do protokołów serwisowych i dokumentów technicznych.",
+  "start_url": "/logowanie",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "lang": "pl",
+  "icons": [
+    {
+      "src": "/ikona-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/ikona-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

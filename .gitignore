@@ -1,0 +1,16 @@
+node_modules
+.next
+.env
+.env.local
+dist
+build
+coverage
+backend/uploads/*
+!backend/uploads/zdjecia/
+!backend/uploads/szablony/
+*.log
+kramarska.xls
+stryjenski15.ods
+tmp-stryjenskich.zip
+tmp-stryjenskich/
+przyklady/

@@ -1,0 +1,91 @@
+﻿CREATE TABLE IF NOT EXISTS kategorie_usterek (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nazwa VARCHAR(160) NOT NULL,
+  opis TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_kategorie_usterek_nazwa (nazwa)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+
+CREATE TABLE IF NOT EXISTS czynnosci_serwisowe (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nazwa VARCHAR(180) NOT NULL,
+  opis TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_czynnosci_serwisowe_nazwa (nazwa)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+
+CREATE TABLE IF NOT EXISTS szablony_przegladow (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nazwa VARCHAR(180) NOT NULL,
+  opis TEXT,
+  zawartosc LONGTEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+
+CREATE TABLE IF NOT EXISTS definicje_czesci (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nazwa VARCHAR(180) NOT NULL,
+  jednostka VARCHAR(30) NOT NULL DEFAULT 'szt',
+  kod VARCHAR(80),
+  opis TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+
+CREATE TABLE IF NOT EXISTS zgloszenia (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tytul VARCHAR(220) NOT NULL,
+  opis TEXT,
+  kontrahent_id INT NULL,
+  kategoria_usterki_id INT NULL,
+  status ENUM('Nowe', 'W toku', 'Zamkniete') NOT NULL DEFAULT 'Nowe',
+  priorytet ENUM('Niski', 'Normalny', 'Wysoki') NOT NULL DEFAULT 'Normalny',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_zgloszenia_kontrahent FOREIGN KEY (kontrahent_id) REFERENCES klienci(id) ON DELETE SET NULL,
+  CONSTRAINT fk_zgloszenia_kategoria FOREIGN KEY (kategoria_usterki_id) REFERENCES kategorie_usterek(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+
+CREATE TABLE IF NOT EXISTS odczyty_licznikow (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  lp INT NOT NULL,
+  typ_licznika VARCHAR(220) NOT NULL,
+  numer_licznika VARCHAR(120) NOT NULL,
+  kontrahent_id INT NULL,
+  rok INT NOT NULL,
+  m01 VARCHAR(40),
+  m02 VARCHAR(40),
+  m03 VARCHAR(40),
+  m04 VARCHAR(40),
+  m05 VARCHAR(40),
+  m06 VARCHAR(40),
+  m07 VARCHAR(40),
+  m08 VARCHAR(40),
+  m09 VARCHAR(40),
+  m10 VARCHAR(40),
+  m11 VARCHAR(40),
+  m12 VARCHAR(40),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_odczyty_kontrahent FOREIGN KEY (kontrahent_id) REFERENCES klienci(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+
+CREATE TABLE IF NOT EXISTS ppoz_przeglady (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nazwa VARCHAR(220) NOT NULL,
+  data_przegladu DATE,
+  kontrahent_id INT NULL,
+  opis TEXT,
+  status ENUM('Planowany', 'W realizacji', 'Zakonczony') NOT NULL DEFAULT 'Planowany',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_ppoz_kontrahent FOREIGN KEY (kontrahent_id) REFERENCES klienci(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+
+CREATE INDEX idx_zgloszenia_status ON zgloszenia(status);
+CREATE INDEX idx_odczyty_rok ON odczyty_licznikow(rok);
+CREATE INDEX idx_ppoz_data ON ppoz_przeglady(data_przegladu);
+

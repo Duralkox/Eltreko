@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-tlo text-slate-100 antialiased;
+  background-image: theme("backgroundImage.gradientGlow");
+  min-height: 100vh;
+}
+
+@keyframes soft-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.anim-sekcja {
+  animation: soft-rise 420ms ease-out both;
+}
+
+.anim-panel {
+  animation: soft-rise 520ms ease-out both;
+}
+
+.anim-dropdown {
+  transform-origin: top;
+  animation: soft-fade 160ms ease-out both;
+}
+
+.karta-szklana {
+  @apply border bg-szklo backdrop-blur-xl shadow-szklo;
+  border-color: rgba(255, 255, 255, 0.07);
+  animation: soft-rise 420ms ease-out both;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.karta-szklana:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
+}
+
+.pole {
+  @apply w-full rounded-xl px-4 py-3 text-sm text-slate-100 focus:border-akcent focus:outline-none;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.03);
+  color: #f8fafc;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.pole:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pole:focus {
+  transform: translateY(-1px);
+}
+
+.pole::placeholder {
+  color: #8a98a5;
+}
+
+/* Make native select dropdown options readable on Windows browsers */
+select.pole option {
+  color: #f3f4f6;
+  background-color: #22303a;
+}
+
+select.pole option:checked,
+select.pole option:hover {
+  color: #ecfdf5;
+  background-color: #2d8753;
+}
+
+.przycisk {
+  @apply rounded-xl px-4 py-2.5 text-sm font-medium transition;
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.przycisk-glowny {
+  @apply przycisk;
+  background: #4ac46f;
+  color: #071b12;
+  box-shadow: 0 10px 24px rgba(74, 196, 111, 0.18);
+}
+
+.przycisk-glowny:hover {
+  background: #5bd487;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(74, 196, 111, 0.24);
+}
+
+.przycisk-wtorny {
+  @apply przycisk text-slate-100;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.przycisk-wtorny:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+.przycisk:active {
+  transform: translateY(0) scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .karta-szklana,
+  .anim-sekcja,
+  .anim-panel,
+  .anim-dropdown,
+  .pole,
+  .przycisk,
+  .przycisk-glowny,
+  .przycisk-wtorny {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
