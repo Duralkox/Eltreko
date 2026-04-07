@@ -3,15 +3,15 @@ const db = require("../config/db");
 
 async function pobierzUzytkownikaZSupabase(token) {
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+  const supabaseApiKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseApiKey) {
     return null;
   }
 
   const odpowiedz = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: {
-      apikey: supabaseAnonKey,
+      apikey: supabaseApiKey,
       Authorization: `Bearer ${token}`
     }
   });

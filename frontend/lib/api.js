@@ -2,7 +2,13 @@
 
 import { pobierzTokenAutoryzacji } from "./auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+function normalizujApiUrl(url) {
+  const czystyUrl = String(url || "").replace(/\/+$/, "");
+  if (!czystyUrl) return "http://localhost:5000/api";
+  return czystyUrl.endsWith("/api") ? czystyUrl : `${czystyUrl}/api`;
+}
+
+const API_URL = normalizujApiUrl(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api");
 const KLUCZ_PREFEROWANEGO_API = "eltreko_preferowany_api";
 
 function pobierzPreferowanyApiUrl() {
