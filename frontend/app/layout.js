@@ -6,10 +6,7 @@ export const metadata = {
   description: "Wewnętrzny system protokołów i dokumentów technicznych",
   manifest: "/manifest.json",
   icons: {
-    icon: [
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/ikona-192.png", sizes: "192x192", type: "image/png" }
-    ],
+    icon: [{ url: "/favicon-32.png", sizes: "32x32", type: "image/png" }],
     apple: [{ url: "/ikona-192.png", sizes: "192x192", type: "image/png" }]
   }
 };
