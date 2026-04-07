@@ -12,6 +12,7 @@ import {
   WrenchScrewdriverIcon,
   ListBulletIcon,
   DocumentDuplicateIcon,
+  DevicePhoneMobileIcon,
   CubeIcon,
   ShieldExclamationIcon,
   PlusCircleIcon,
@@ -26,7 +27,8 @@ const MENU_GLOWNE = [
   { href: "/protokoly", etykieta: "Protokoły", ikona: ClipboardDocumentListIcon },
   { href: "/odczyty-licznikow", etykieta: "Odczyty liczników", ikona: CalculatorIcon },
   { href: "/kontrahenci", etykieta: "Kontrahenci", ikona: BuildingOffice2Icon },
-  { href: "/szablony-przegladow", etykieta: "Szablony przeglądów", ikona: DocumentDuplicateIcon }
+  { href: "/szablony-przegladow", etykieta: "Szablony przeglądów", ikona: DocumentDuplicateIcon },
+  { href: "/aplikacja", etykieta: "Aplikacja", ikona: DevicePhoneMobileIcon }
 ];
 
 const MENU_ELEMENTY = [
@@ -123,8 +125,8 @@ export default function Sidebar() {
   const menuGlowne = czyAdminGlowny
     ? MENU_GLOWNE
     : MENU_GLOWNE.filter((item) => item.href !== "/kontrahenci");
-  const menuGlownePrzedElementami = menuGlowne.filter((item) => item.href !== "/szablony-przegladow");
-  const menuGlownePoElementach = menuGlowne.filter((item) => item.href === "/szablony-przegladow");
+  const menuGlownePrzedElementami = menuGlowne.filter((item) => !["/szablony-przegladow", "/aplikacja"].includes(item.href));
+  const menuGlownePoElementach = menuGlowne.filter((item) => ["/szablony-przegladow", "/aplikacja"].includes(item.href));
   const nazwaUzytkownika =
     emailUzytkownika === "dominik@eltreko.pl"
       ? "Dominik Administrator"
