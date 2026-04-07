@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
@@ -58,7 +57,7 @@ export default function AplikacjaPage() {
     if (czyZainstalowana) return "Aplikacja działa już w trybie zainstalowanym.";
     if (promptInstalacji) return "Możesz zainstalować aplikację jednym kliknięciem.";
     if (czyIos) return "Na iPhone instalacja odbywa się przez menu Udostępnij.";
-    return "Na Androidzie instalacja pojawi się, gdy przeglądarka udostępni tę opcję.";
+    return "Jeśli przeglądarka udostępni instalację, przycisk uruchomi dodanie aplikacji.";
   }, [czyIos, czyZainstalowana, promptInstalacji]);
 
   async function zainstalujAplikacje() {
@@ -70,7 +69,7 @@ export default function AplikacjaPage() {
     }
 
     if (!promptInstalacji) {
-      setKomunikat("Jeśli instalacja nie pojawia się automatycznie, użyj instrukcji dla swojego telefonu.");
+      setKomunikat("Użyj instrukcji dla swojego telefonu.");
       return;
     }
 
@@ -99,8 +98,8 @@ export default function AplikacjaPage() {
       ) : null}
 
       <section className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-        <article className="karta-szklana overflow-hidden rounded-3xl p-6">
-          <div className="relative overflow-hidden rounded-[1.75rem] border border-emerald-300/12 bg-[radial-gradient(circle_at_20%_0%,rgba(92,211,126,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.055),rgba(255,255,255,0.018))] p-6">
+        <article className="karta-szklana overflow-hidden rounded-3xl p-4 sm:p-6">
+          <div className="relative overflow-hidden rounded-[1.75rem] border border-emerald-300/12 bg-[radial-gradient(circle_at_20%_0%,rgba(92,211,126,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.055),rgba(255,255,255,0.018))] p-5 sm:p-6">
             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200/85">EltrekoAPP</p>
@@ -112,8 +111,8 @@ export default function AplikacjaPage() {
                 </p>
               </div>
 
-              <div className="mx-auto flex h-36 w-36 shrink-0 items-center justify-center rounded-[2rem] border border-white/10 bg-[#1d2c34] shadow-[0_22px_60px_rgba(0,0,0,0.24)] md:mx-0">
-                <Image src="/ikona-192.png" alt="Ikona EltrekoAPP" width={96} height={96} className="h-24 w-24 object-contain" />
+              <div className="mx-auto flex h-32 w-32 shrink-0 items-center justify-center rounded-[2rem] border border-white/10 bg-[#1d2c34] shadow-[0_22px_60px_rgba(0,0,0,0.24)] md:mx-0">
+                <Image src="/ikona-192.png" alt="Ikona EltrekoAPP" width={88} height={88} className="h-20 w-20 object-contain" />
               </div>
             </div>
 
@@ -131,7 +130,7 @@ export default function AplikacjaPage() {
           </div>
         </article>
 
-        <article className="karta-szklana rounded-3xl p-6">
+        <article className="karta-szklana rounded-3xl p-4 sm:p-6">
           <div className="flex items-start gap-4">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-300/15 bg-emerald-500/10 text-emerald-200">
               <DevicePhoneMobileIcon className="h-6 w-6" />
@@ -169,13 +168,6 @@ export default function AplikacjaPage() {
               </ol>
             </div>
           </div>
-
-          <Link
-            href="/m/protokoly"
-            className="mt-5 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-300/18 bg-emerald-500/[0.08] px-4 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/[0.13]"
-          >
-            Otwórz mobilny widok protokołów
-          </Link>
         </article>
       </section>
     </div>

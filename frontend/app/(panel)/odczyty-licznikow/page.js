@@ -1120,18 +1120,18 @@ const OdczytRow = memo(function OdczytRow({
         tdClassName: "pr-3 text-left"
       })}
       {renderujEdytowalnaKomorke("rodzaj_licznika", w.rodzaj_licznika, {
-        tdClassName: zastepczaKreska(w.rodzaj_licznika) === "-" ? "" : "pr-3 text-left",
+        tdClassName: `${miesiacWidoku ? "hidden sm:table-cell" : ""} ${zastepczaKreska(w.rodzaj_licznika) === "-" ? "" : "pr-3 text-left"}`,
         placeholderMinus: true
       })}
       {renderujEdytowalnaKomorke("numer_licznika", w.numer_licznika, {
-        tdClassName: `tabular-nums ${zastepczaKreska(w.numer_licznika) === "-" ? "" : "pr-3 text-left"}`,
+        tdClassName: `${miesiacWidoku ? "hidden sm:table-cell" : ""} tabular-nums ${zastepczaKreska(w.numer_licznika) === "-" ? "" : "pr-3 text-left"}`,
         placeholderMinus: true
       })}
       {miesiaceWiersza.map(([kod]) => (
         <td key={kod} className={`${miesiacWidoku ? "py-1.5 text-base font-semibold" : "py-2"} text-center tabular-nums`}>
           {trybMiesieczny ? (
             <input
-              className="pole mx-auto h-10 w-24 py-1 text-center"
+              className="pole mx-auto h-12 w-28 py-1 text-center text-base font-semibold"
               type="text"
               inputMode="decimal"
               value={editedValue}
@@ -1140,7 +1140,7 @@ const OdczytRow = memo(function OdczytRow({
             />
           ) : czyEdycjaCalkowita && aktywnaKomorka === `${w.id}:${kod}` ? (
             <input
-              className="pole mx-auto h-10 w-24 py-1 text-center"
+              className="pole mx-auto h-12 w-28 py-1 text-center text-base font-semibold"
               type="text"
               inputMode="decimal"
               value={wartoscAktywnejKomorki}
@@ -1175,7 +1175,7 @@ const OdczytRow = memo(function OdczytRow({
         </td>
       ))}
       <td className={`${miesiacWidoku ? "py-1.5" : "py-2"}`}>
-        <div className={`flex ${miesiacWidoku ? "justify-end" : ""} gap-2`}>
+        <div className={`flex ${miesiacWidoku ? "flex-col justify-end sm:flex-row" : ""} gap-2`}>
           {trybMiesieczny ? (
             <>
               <button className="przycisk-wtorny min-w-0 px-3 py-1.5 text-sm" onClick={() => onSave(w)} type="button">
@@ -2574,8 +2574,8 @@ export default function OdczytyLicznikowPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-[1000px] text-sm">
+        <div className="overflow-x-auto rounded-xl border border-white/8 bg-white/[0.025] p-2">
+          <table className="min-w-[860px] text-sm">
             <thead>
               <tr className="text-slate-300">
                 {MIESIACE.map(([, nazwa, skrot]) => (
@@ -2590,7 +2590,7 @@ export default function OdczytyLicznikowPage() {
                 {MIESIACE.map(([kod, nazwa, skrot]) => (
                   <td key={kod} className="px-1 py-1">
                     <input
-                      className="pole text-center"
+                      className="pole h-11 text-center"
                       type="text"
                       inputMode="decimal"
                       title={nazwa}
@@ -2611,7 +2611,7 @@ export default function OdczytyLicznikowPage() {
 
         {blad ? <p className="text-sm text-red-300">{blad}</p> : null}
 
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <button className="przycisk-glowny">{edytowany ? "Zapisz zmiany" : "Dodaj odczyt"}</button>
           {edytowany ? (
             <button type="button" className="przycisk-wtorny" onClick={() => { setEdytowany(null); setFormularz(pustyFormularz()); setQBudynek(""); }}>
@@ -3198,19 +3198,19 @@ export default function OdczytyLicznikowPage() {
                   </div>
                 </div>
 
-                <table className={`${miesiacWidoku ? "mx-auto w-full max-w-[960px]" : "min-w-[1180px]"} table-fixed text-sm`}>
+                <table className={`${miesiacWidoku ? "w-full min-w-[520px] table-auto sm:min-w-0 sm:table-fixed" : "min-w-[1180px] table-fixed"} text-sm`}>
                   <thead>
                     <tr className="text-slate-300">
-                      <th className="w-12 py-2 text-left">Lp.</th>
-                      <th className={`${miesiacWidoku ? "w-[40%]" : "w-[34%]"} py-2 text-left`}>Licznik/Podlicznik</th>
-                      <th className={`${miesiacWidoku ? "w-32" : "w-44"} py-2 text-left`}>Rodzaj</th>
-                      <th className={`${miesiacWidoku ? "w-28" : "w-40"} py-2 text-left`}>Nr. licznika</th>
+                      <th className={`${miesiacWidoku ? "w-10" : "w-12"} py-2 text-left`}>Lp.</th>
+                      <th className={`${miesiacWidoku ? "w-[46%] sm:w-[40%]" : "w-[34%]"} py-2 text-left`}>Licznik/Podlicznik</th>
+                      <th className={`${miesiacWidoku ? "hidden w-28 sm:table-cell" : "w-44"} py-2 text-left`}>Rodzaj</th>
+                      <th className={`${miesiacWidoku ? "hidden w-28 sm:table-cell" : "w-40"} py-2 text-left`}>Nr. licznika</th>
                       {MIESIACE.filter(([kod]) => !miesiacWidoku || kod === miesiacWidoku).map(([, nazwa, skrot]) => (
-                        <th key={nazwa} className={`${miesiacWidoku ? "w-24" : "w-16"} py-2 text-center text-xs font-semibold uppercase tracking-tight`} title={nazwa}>
+                        <th key={nazwa} className={`${miesiacWidoku ? "w-28" : "w-16"} py-2 text-center text-xs font-semibold uppercase tracking-tight`} title={nazwa}>
                           {miesiacWidoku ? nazwa : skrot}
                         </th>
                       ))}
-                      <th className={`${miesiacWidoku ? "w-36" : "w-40"} py-2`}></th>
+                      <th className={`${miesiacWidoku ? "w-24 sm:w-36" : "w-40"} py-2`}></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3239,7 +3239,7 @@ export default function OdczytyLicznikowPage() {
                   </tbody>
                 </table>
                 {miesiacWidoku ? (
-                  <p className="mt-3 text-xs text-slate-400">
+                  <p className="mt-3 rounded-xl border border-emerald-300/10 bg-emerald-500/[0.055] px-3 py-2 text-xs text-emerald-100/85">
                     Widok miesiąca: {MIESIACE.find(([kod]) => kod === miesiacWidoku)?.[1] || ""}
                   </p>
                 ) : null}

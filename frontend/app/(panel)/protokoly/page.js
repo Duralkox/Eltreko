@@ -748,7 +748,7 @@ export default function Protokoly() {
                 className="relative overflow-hidden rounded-3xl bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-4 shadow-[0_14px_32px_rgba(8,15,24,0.16)] ring-1 ring-white/[0.045] md:p-5"
               >
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/35 to-transparent" />
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-3">
                       <h4 className="text-xl font-semibold text-slate-100 drop-shadow-[0_1px_0_rgba(255,255,255,0.03)]">
@@ -763,17 +763,17 @@ export default function Protokoly() {
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <button className="przycisk-wtorny" type="button" onClick={() => przelaczRozwiniecie(wiersz.id)}>
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+                    <button className="przycisk-wtorny text-center" type="button" onClick={() => przelaczRozwiniecie(wiersz.id)}>
                       {rozwiniety ? "Zwiń" : "Rozwiń"}
                     </button>
-                    <button className="przycisk-wtorny" type="button" onClick={() => rozpocznijEdycje(wiersz)}>
+                    <button className="przycisk-wtorny text-center" type="button" onClick={() => rozpocznijEdycje(wiersz)}>
                       Edytuj
                     </button>
-                    <button className="przycisk-wtorny" type="button" onClick={() => usun(wiersz.id)}>
+                    <button className="przycisk-wtorny text-center" type="button" onClick={() => usun(wiersz.id)}>
                       Usuń
                     </button>
-                    <button className="przycisk-wtorny" type="button" onClick={() => eksportuj(wiersz)}>
+                    <button className="przycisk-wtorny text-center" type="button" onClick={() => eksportuj(wiersz)}>
                       PDF
                     </button>
                   </div>
