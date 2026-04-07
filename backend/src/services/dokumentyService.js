@@ -113,8 +113,8 @@ function generujPdf(dane) {
   doc.roundedRect(54, 172, 487, 56, 14).fillColor("#ffffff").fill();
   doc.roundedRect(54, 172, 487, 56, 14).lineWidth(1).strokeColor("#e6ebef").stroke();
 
-  doc.font(fontBold).fontSize(17).fillColor(ciemny).text("Protokół przyjęcia zlecenia", 74, 188, { width: 310 });
-  doc.font(fontRegular).fontSize(10).fillColor(szary).text(`Nr ${bezpiecznyTekst(dane.numer_protokolu)}`, 74, 209);
+  doc.font(fontBold).fontSize(18).fillColor(ciemny).text(`Nr ${bezpiecznyTekst(dane.numer_protokolu)}`, 74, 186, { width: 310 });
+  doc.font(fontRegular).fontSize(10).fillColor(szary).text("Protokół przyjęcia zlecenia", 74, 209);
 
   doc.roundedRect(402, 182, 122, 36, 10).fillColor("#eef6e6").fill();
   doc.font(fontBold).fontSize(8).fillColor("#5f7f31").text("DATA PRZYJĘCIA", 415, 190, { width: 96, align: "center" });
