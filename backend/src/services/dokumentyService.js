@@ -25,17 +25,22 @@ function parsujListeJson(wartosc) {
 
 function wybierzCzcionke() {
   const kandydaciRegular = [
+    path.join(__dirname, "..", "..", "assets", "fonts", "arial.ttf"),
+    path.join(process.cwd(), "assets", "fonts", "arial.ttf"),
     path.join(process.cwd(), "assets", "fonts", "DejaVuSans.ttf"),
     "C:\\Windows\\Fonts\\arial.ttf"
   ];
   const kandydaciBold = [
+    path.join(__dirname, "..", "..", "assets", "fonts", "arialbd.ttf"),
+    path.join(process.cwd(), "assets", "fonts", "arialbd.ttf"),
     path.join(process.cwd(), "assets", "fonts", "DejaVuSans-Bold.ttf"),
     "C:\\Windows\\Fonts\\arialbd.ttf"
   ];
-  return {
-    regular: kandydaciRegular.find((p) => fs.existsSync(p)),
-    bold: kandydaciBold.find((p) => fs.existsSync(p))
-  };
+
+  const regular = kandydaciRegular.find((fontPath) => fs.existsSync(fontPath));
+  const bold = kandydaciBold.find((fontPath) => fs.existsSync(fontPath)) || regular;
+
+  return { regular, bold };
 }
 
 function wybierzLogo() {
@@ -43,7 +48,7 @@ function wybierzLogo() {
     path.join(process.cwd(), "..", "frontend", "public", "logo.png"),
     path.join(process.cwd(), "frontend", "public", "logo.png")
   ];
-  return kandydaci.find((p) => fs.existsSync(p));
+  return kandydaci.find((plik) => fs.existsSync(plik));
 }
 
 function rysujPole(doc, etykieta, wartosc, x, y, szerokosc, fontBold, fontRegular) {
