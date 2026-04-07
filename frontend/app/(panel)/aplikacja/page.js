@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
   DevicePhoneMobileIcon,
-  ShareIcon,
-  SquaresPlusIcon
+  ShareIcon
 } from "@heroicons/react/24/outline";
 import SekcjaNaglowek from "../../../components/SekcjaNaglowek";
 
@@ -58,7 +58,7 @@ export default function AplikacjaPage() {
     if (czyZainstalowana) return "Aplikacja działa już w trybie zainstalowanym.";
     if (promptInstalacji) return "Możesz zainstalować aplikację jednym kliknięciem.";
     if (czyIos) return "Na iPhone instalacja odbywa się przez menu Udostępnij.";
-    return "Jeśli przycisk nie jest aktywny, otwórz stronę w Chrome lub Edge i odśwież widok.";
+    return "Na Androidzie instalacja pojawi się, gdy przeglądarka udostępni tę opcję.";
   }, [czyIos, czyZainstalowana, promptInstalacji]);
 
   async function zainstalujAplikacje() {
@@ -70,7 +70,7 @@ export default function AplikacjaPage() {
     }
 
     if (!promptInstalacji) {
-      setKomunikat("Przeglądarka nie udostępniła jeszcze instalacji. Spróbuj odświeżyć stronę albo użyj instrukcji poniżej.");
+      setKomunikat("Jeśli instalacja nie pojawia się automatycznie, użyj instrukcji dla swojego telefonu.");
       return;
     }
 
@@ -108,7 +108,7 @@ export default function AplikacjaPage() {
                   Panel serwisowy pod ręką
                 </h2>
                 <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
-                  Zainstalowana wersja otwiera się szybciej, wygląda czyściej na telefonie i będzie bazą pod mobilne protokoły oraz skanowanie kodów QR.
+                  Zainstalowana wersja otwiera się wygodniej na telefonie i daje szybki dostęp do protokołów, odczytów oraz dokumentów serwisowych.
                 </p>
               </div>
 
@@ -168,17 +168,14 @@ export default function AplikacjaPage() {
                 <li>3. Wybierz `Dodaj do ekranu początkowego`.</li>
               </ol>
             </div>
-
-            <div className="rounded-2xl border border-emerald-300/12 bg-emerald-500/[0.055] p-4">
-              <div className="flex items-center gap-3">
-                <SquaresPlusIcon className="h-5 w-5 text-emerald-200" />
-                <h3 className="font-semibold text-slate-100">Następny krok</h3>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
-                Później zrobimy osobny tryb mobilny dla protokołów i linki QR, żeby telefon otwierał od razu właściwy budynek lub nowy protokół.
-              </p>
-            </div>
           </div>
+
+          <Link
+            href="/m/protokoly"
+            className="mt-5 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-300/18 bg-emerald-500/[0.08] px-4 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/[0.13]"
+          >
+            Otwórz mobilny widok protokołów
+          </Link>
         </article>
       </section>
     </div>
