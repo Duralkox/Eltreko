@@ -426,6 +426,14 @@ function wartoscMiesiecznaTekst(wartosc) {
   return wartosc == null ? "" : String(wartosc);
 }
 
+function przywrocScrollPoZapisie(pozycja) {
+  if (typeof window === "undefined") return;
+  const x = window.scrollX;
+  const ustaw = () => window.scrollTo({ top: pozycja, left: x, behavior: "auto" });
+  window.requestAnimationFrame(ustaw);
+  window.setTimeout(ustaw, 80);
+}
+
 function zastepczaKreska(wartosc) {
   const tekst = wartoscKomorki(wartosc);
   return tekst || "-";
@@ -1200,6 +1208,137 @@ const OdczytRow = memo(function OdczytRow({
         </div>
       </td>
     </tr>
+  );
+});
+
+const OdczytMobileCard = memo(function OdczytMobileCard({
+  w,
+  miesiacWidoku,
+  czyEdycjaCalkowita,
+  isEditing,
+  editedValue,
+  aktywnaKomorka,
+  wartoscAktywnejKomorki,
+  zapisywanaKomorka,
+  onEditedValueChange,
+  onStartCellEdit,
+  onCellValueChange,
+  onEdit,
+  onDelete,
+  onCellSave,
+  onCellCancel,
+  onSave,
+  onCancel
+}) {
+  if (!miesiacWidoku) return null;
+
+  const kluczKomorki = `${w.id}:${miesiacWidoku}`;
+  const aktywna = aktywnaKomorka === kluczKomorki;
+  const zapisywana = zapisywanaKomorka === kluczKomorki;
+  const trybMiesieczny = isEditing && !czyEdycjaCalkowita;
+  const miesiacNazwa = MIESIACE.find(([kod]) => kod === miesiacWidoku)?.[1] || "";
+
+  function wartoscMiesiaca() {
+    if (trybMiesieczny) {
+      return (
+        <input
+          className="pole h-14 w-full text-center text-lg font-semibold"
+          type="text"
+          inputMode="decimal"
+          value={editedValue}
+          onChange={(e) => onEditedValueChange(wartoscMiesiecznaTekst(e.target.value))}
+          autoFocus
+        />
+      );
+    }
+
+    if (czyEdycjaCalkowita && aktywna) {
+      return (
+        <input
+          className="pole h-14 w-full text-center text-lg font-semibold"
+          type="text"
+          inputMode="decimal"
+          value={wartoscAktywnejKomorki}
+          onChange={(e) => onCellValueChange(wartoscMiesiecznaTekst(e.target.value))}
+          onBlur={() => onCellSave(w, miesiacWidoku)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onCellSave(w, miesiacWidoku);
+            }
+            if (e.key === "Escape") {
+              e.preventDefault();
+              onCellCancel();
+            }
+          }}
+          autoFocus
+        />
+      );
+    }
+
+    if (czyEdycjaCalkowita) {
+      return (
+        <button
+          type="button"
+          className={`pole flex h-14 w-full items-center justify-center text-lg font-semibold ${zapisywana ? "opacity-60" : ""}`}
+          onClick={() => onStartCellEdit(w, miesiacWidoku)}
+        >
+          {w[miesiacWidoku] || "-"}
+        </button>
+      );
+    }
+
+    return (
+      <div className="flex h-14 items-center justify-center rounded-2xl border border-emerald-300/12 bg-emerald-500/[0.07] text-lg font-semibold text-emerald-100">
+        {w[miesiacWidoku] || "-"}
+      </div>
+    );
+  }
+
+  return (
+    <article className="rounded-2xl border border-white/10 bg-white/[0.045] p-3 shadow-[0_12px_28px_rgba(0,0,0,0.12)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Lp. {w.lp || "-"}</p>
+          <h4 className="mt-1 text-base font-semibold text-slate-50">{w.typ_licznika || "Licznik"}</h4>
+          <p className="mt-1 text-xs leading-5 text-slate-400">
+            {w.rodzaj_licznika ? `${w.rodzaj_licznika}` : "Rodzaj: -"}
+            {w.numer_licznika ? ` | Nr: ${w.numer_licznika}` : ""}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full border border-emerald-300/15 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-200">
+          {miesiacNazwa}
+        </span>
+      </div>
+
+      <div className="mt-3">
+        {wartoscMiesiaca()}
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {trybMiesieczny ? (
+          <>
+            <button className="przycisk-wtorny px-3 py-2 text-sm" onClick={() => onSave(w)} type="button">
+              Zapisz
+            </button>
+            <button className="przycisk-wtorny px-3 py-2 text-sm" onClick={onCancel} type="button">
+              Anuluj
+            </button>
+          </>
+        ) : (
+          <>
+            {!czyEdycjaCalkowita ? (
+              <button className="przycisk-wtorny px-3 py-2 text-sm" onClick={() => onEdit(w)} type="button">
+                Edytuj
+              </button>
+            ) : null}
+            <button className="przycisk-wtorny px-3 py-2 text-sm" onClick={() => onDelete(w.id)} type="button">
+              Usuń
+            </button>
+          </>
+        )}
+      </div>
+    </article>
   );
 });
 
@@ -2068,11 +2207,11 @@ export default function OdczytyLicznikowPage() {
       m12: w.m12 || ""
     });
     setQBudynek(w.kontrahent_nazwa || "");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [miesiacWidoku]);
 
   const zapiszMiesiac = useCallback(async (w) => {
     if (!miesiacWidoku) return;
+    const scrollPrzedZapisem = typeof window !== "undefined" ? window.scrollY : 0;
     setBlad("");
     setKomunikatLokalny("");
 
@@ -2091,6 +2230,7 @@ export default function OdczytyLicznikowPage() {
       void zapiszZmianyDoChmuryPoRekordzie(wynik, listaPoZapisieRekordu(lista, wynik));
       setEdytowanyMiesiacId(null);
       setWartoscEdytowanegoMiesiaca("");
+      przywrocScrollPoZapisie(scrollPrzedZapisem);
     } catch (e) {
       if (czyBladPolaczenia(e)) {
         const lokalnyRekord = { ...w, ...payload, _lokalne: true };
@@ -2111,6 +2251,7 @@ export default function OdczytyLicznikowPage() {
         zapiszCacheOdczytow(
           lista.map((item) => (String(item.id) === String(w.id) ? lokalnyRekord : item))
         ).catch(() => {});
+        przywrocScrollPoZapisie(scrollPrzedZapisem);
         return;
       }
       setBlad(e.message);
@@ -2120,6 +2261,7 @@ export default function OdczytyLicznikowPage() {
   const zapiszKomorke = useCallback(async (w, pole) => {
     const kluczKomorki = `${w.id}:${pole}`;
     if (edytowanaKomorka !== kluczKomorki) return;
+    const scrollPrzedZapisem = typeof window !== "undefined" ? window.scrollY : 0;
 
     const nowaWartosc = pole.startsWith("m")
       ? wartoscMiesiecznaTekst(wartoscEdytowanejKomorki)
@@ -2151,6 +2293,7 @@ export default function OdczytyLicznikowPage() {
       ustawLubDodajOdczyt(wynik);
       void zapiszZmianyDoChmuryPoRekordzie(wynik, listaPoZapisieRekordu(lista, wynik));
       anulujEdycjeKomorki();
+      przywrocScrollPoZapisie(scrollPrzedZapisem);
     } catch (e) {
       if (pole.startsWith("m") && czyBladPolaczenia(e)) {
         const lokalnyRekord = { ...w, ...payload, _lokalne: true };
@@ -2170,6 +2313,7 @@ export default function OdczytyLicznikowPage() {
         zapiszCacheOdczytow(
           lista.map((item) => (String(item.id) === String(w.id) ? lokalnyRekord : item))
         ).catch(() => {});
+        przywrocScrollPoZapisie(scrollPrzedZapisem);
         return;
       }
       setBlad(e.message);
@@ -3198,7 +3342,34 @@ export default function OdczytyLicznikowPage() {
                   </div>
                 </div>
 
-                <table className={`${miesiacWidoku ? "w-full min-w-[520px] table-auto sm:min-w-0 sm:table-fixed" : "min-w-[1180px] table-fixed"} text-sm`}>
+                {miesiacWidoku ? (
+                  <div className="space-y-3 sm:hidden">
+                    {grupa.wiersze.map((w) => (
+                      <OdczytMobileCard
+                        key={w.id}
+                        w={w}
+                        miesiacWidoku={miesiacWidoku}
+                        czyEdycjaCalkowita={czyAdminGlowny && grupaEdycjiCalkowitej === grupa.key}
+                        isEditing={edytowanyMiesiacId === w.id}
+                        editedValue={edytowanyMiesiacId === w.id ? wartoscEdytowanegoMiesiaca : ""}
+                        aktywnaKomorka={edytowanaKomorka}
+                        wartoscAktywnejKomorki={wartoscEdytowanejKomorki}
+                        zapisywanaKomorka={zapisywanaKomorka}
+                        onEditedValueChange={aktualizujWartoscEdytowanegoMiesiaca}
+                        onStartCellEdit={(rekord, pole) => rozpocznijEdycjeKomorki(rekord, pole, grupa.key)}
+                        onCellValueChange={aktualizujWartoscEdytowanejKomorki}
+                        onEdit={edytuj}
+                        onDelete={usun}
+                        onCellSave={zapiszKomorke}
+                        onCellCancel={anulujEdycjeKomorki}
+                        onSave={zapiszMiesiac}
+                        onCancel={anulujEdycjeMiesiaca}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+
+                <table className={`${miesiacWidoku ? "hidden w-full table-fixed text-sm sm:table" : "min-w-[1180px] table-fixed text-sm"}`}>
                   <thead>
                     <tr className="text-slate-300">
                       <th className={`${miesiacWidoku ? "w-10" : "w-12"} py-2 text-left`}>Lp.</th>
