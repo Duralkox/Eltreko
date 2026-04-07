@@ -4,6 +4,7 @@ const {
 } = require("../services/dokumentyService");
 
 const EMAIL_SERWISU = "serwis@eltreko.pl";
+const NAZWA_KONTA_SERWISU = "Michał Serwis";
 const KONTRAHENT_SERWISU = "Port Praski";
 
 let kolumnyProtokolowGotowe = false;
@@ -59,7 +60,10 @@ function normalizujTekst(wartosc) {
 }
 
 function czyKontoSerwis(req) {
-  return normalizujTekst(req.uzytkownik?.email) === EMAIL_SERWISU;
+  return (
+    normalizujTekst(req.uzytkownik?.email) === EMAIL_SERWISU ||
+    normalizujTekst(req.uzytkownik?.imieNazwisko || req.uzytkownik?.imie_nazwisko) === normalizujTekst(NAZWA_KONTA_SERWISU)
+  );
 }
 
 function czyKontrahentSerwisu(wartosc) {

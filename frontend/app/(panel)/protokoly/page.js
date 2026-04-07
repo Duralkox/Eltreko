@@ -6,6 +6,7 @@ import { zapytanieApi } from "../../../lib/api";
 import { pobierzSesje } from "../../../lib/auth";
 
 const EMAIL_SERWISU = "serwis@eltreko.pl";
+const NAZWA_KONTA_SERWISU = "Michał Serwis";
 const KONTRAHENT_SERWISU = "Port Praski";
 
 const pustyFormularz = {
@@ -151,7 +152,9 @@ function PoleDropdown({
 
 export default function Protokoly() {
   const sesja = useMemo(() => pobierzSesje(), []);
-  const czyKontoSerwis = normalizujTekst(sesja?.uzytkownik?.email) === EMAIL_SERWISU;
+  const czyKontoSerwis =
+    normalizujTekst(sesja?.uzytkownik?.email) === EMAIL_SERWISU ||
+    normalizujTekst(sesja?.uzytkownik?.imieNazwisko || sesja?.uzytkownik?.imie_nazwisko) === normalizujTekst(NAZWA_KONTA_SERWISU);
   const [lista, setLista] = useState([]);
   const [technicy, setTechnicy] = useState([]);
   const [odczyty, setOdczyty] = useState([]);

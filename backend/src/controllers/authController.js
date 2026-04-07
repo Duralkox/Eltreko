@@ -1,5 +1,3 @@
-const db = require("../config/db");
-
 async function logowanie(_req, res) {
   return res.status(410).json({
     blad: "Lokalne logowanie zostało wyłączone. Użyj Supabase Auth."

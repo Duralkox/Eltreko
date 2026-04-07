@@ -1263,7 +1263,9 @@ export default function OdczytyLicznikowPage() {
   const [liczbaLokalnychZapisow, setLiczbaLokalnychZapisow] = useState(0);
   const sesja = useMemo(() => pobierzSesje(), []);
   const czyKontoAdmin = normalizujTekst(sesja?.uzytkownik?.email) === "dominik@eltreko.pl";
-  const czyKontoSerwis = normalizujTekst(sesja?.uzytkownik?.email) === "serwis@eltreko.pl";
+  const czyKontoSerwis =
+    normalizujTekst(sesja?.uzytkownik?.email) === "serwis@eltreko.pl" ||
+    normalizujTekst(sesja?.uzytkownik?.imieNazwisko || sesja?.uzytkownik?.imie_nazwisko) === normalizujTekst("Michał Serwis");
   const czyAdminGlowny =
     czyKontoAdmin ||
     normalizujTekst(sesja?.uzytkownik?.rola) === "administrator";
