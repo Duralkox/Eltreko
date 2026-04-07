@@ -45,7 +45,7 @@ export default function Klienci() {
 
   return (
     <div className="space-y-6">
-      <SekcjaNaglowek tytul="Klienci" opis="Baza klientĂłw firmy." />
+      <SekcjaNaglowek tytul="Klienci" opis="Baza klientów firmy." />
       <form onSubmit={zapisz} className="karta-szklana rounded-2xl p-4">
         <div className="grid gap-3 md:grid-cols-2">
           <input className="pole" placeholder="Nazwa" value={formularz.nazwa} onChange={(e) => setFormularz({ ...formularz, nazwa: e.target.value })} required />
@@ -64,7 +64,7 @@ export default function Klienci() {
             <article key={w.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
               <p className="font-medium">{w.nazwa}</p>
               <p className="text-sm text-slate-400">
-                {w.adres} â€˘ {w.telefon || "-"} â€˘ {w.email || "-"}
+                {w.adres} • {w.telefon || "-"} • {w.email || "-"}
               </p>
               <p className="mt-1 text-sm text-slate-300">{w.notatki || "Brak notatek."}</p>
               <div className="mt-2 flex gap-2">
@@ -72,12 +72,12 @@ export default function Klienci() {
                   Edytuj
                 </button>
                 <button className="przycisk-wtorny" onClick={() => usun(w.id)}>
-                  UsuĹ„
+                  Usuń
                 </button>
               </div>
             </article>
           ))}
-          {!lista.length ? <p className="text-sm text-slate-400">Brak klientĂłw.</p> : null}
+          {!lista.length ? <p className="text-sm text-slate-400">Brak klientów.</p> : null}
         </div>
       </section>
     </div>

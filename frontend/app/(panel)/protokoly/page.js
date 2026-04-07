@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import SekcjaNaglowek from "../../../components/SekcjaNaglowek";
 import { zapytanieApi } from "../../../lib/api";
+import { pobierzSesje } from "../../../lib/auth";
+
+const EMAIL_SERWISU = "serwis@eltreko.pl";
+const KONTRAHENT_SERWISU = "Port Praski";
 
 const pustyFormularz = {
   data: new Date().toISOString().slice(0, 10),
@@ -146,6 +150,8 @@ function PoleDropdown({
 }
 
 export default function Protokoly() {
+  const sesja = useMemo(() => pobierzSesje(), []);
+  const czyKontoSerwis = normalizujTekst(sesja?.uzytkownik?.email) === EMAIL_SERWISU;
   const [lista, setLista] = useState([]);
   const [technicy, setTechnicy] = useState([]);
   const [odczyty, setOdczyty] = useState([]);
@@ -178,6 +184,7 @@ export default function Protokoly() {
       const klucz = normalizujTekst(kontrahentNazwa);
       const budynekNazwa = wartoscTekstowa(wiersz.budynek_nazwa || wiersz.kontrahent_nazwa);
       if (!klucz || !kontrahentNazwa) continue;
+      if (czyKontoSerwis && klucz !== normalizujTekst(KONTRAHENT_SERWISU)) continue;
 
       if (!mapa.has(klucz)) {
         const meta = metaKontrahentow[klucz];
@@ -195,13 +202,23 @@ export default function Protokoly() {
       }
     }
 
+    if (czyKontoSerwis && !mapa.has(normalizujTekst(KONTRAHENT_SERWISU))) {
+      mapa.set(normalizujTekst(KONTRAHENT_SERWISU), {
+        klucz: normalizujTekst(KONTRAHENT_SERWISU),
+        nazwa: KONTRAHENT_SERWISU,
+        zlecajacy: KONTRAHENT_SERWISU,
+        adresProtokolu: "",
+        budynki: new Set()
+      });
+    }
+
     return Array.from(mapa.values())
       .map((item) => ({
         ...item,
         budynkiLista: Array.from(item.budynki).sort((a, b) => a.localeCompare(b, "pl"))
       }))
       .sort((a, b) => a.nazwa.localeCompare(b.nazwa, "pl"));
-  }, [metaKontrahentow, odczyty]);
+  }, [czyKontoSerwis, metaKontrahentow, odczyty]);
 
   const wybranyKontrahent = useMemo(
     () => mapaKontrahentow.find((item) => item.nazwa === formularz.kontrahent_nazwa) || null,
@@ -270,6 +287,20 @@ export default function Protokoly() {
   }, [formularz.technik_id, technicy]);
 
   useEffect(() => {
+    if (!czyKontoSerwis) return;
+    if (normalizujTekst(formularz.kontrahent_nazwa) === normalizujTekst(KONTRAHENT_SERWISU)) return;
+
+    setFormularz((prev) => ({
+      ...prev,
+      kontrahent_nazwa: KONTRAHENT_SERWISU,
+      budynek_nazwa: "",
+      zlecajacy: KONTRAHENT_SERWISU,
+      adres_obiektu: "",
+      obiekt: ""
+    }));
+  }, [czyKontoSerwis, formularz.kontrahent_nazwa]);
+
+  useEffect(() => {
     if (!wybranyKontrahent) return;
     setFormularz((prev) => ({
       ...prev,
@@ -298,7 +329,7 @@ export default function Protokoly() {
       const payload = {
         ...formularz,
         numer_protokolu: edytowanyId ? formularz.numer_protokolu || undefined : undefined,
-        klient: formularz.kontrahent_nazwa,
+        klient: czyKontoSerwis ? KONTRAHENT_SERWISU : formularz.kontrahent_nazwa,
         adres: formularz.adres_obiektu,
         opis_pracy: formularz.opis_usterki,
         usterki: formularz.lokalizacja_usterki,

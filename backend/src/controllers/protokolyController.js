@@ -3,6 +3,9 @@ const {
   generujPdf
 } = require("../services/dokumentyService");
 
+const EMAIL_SERWISU = "serwis@eltreko.pl";
+const KONTRAHENT_SERWISU = "Port Praski";
+
 let kolumnyProtokolowGotowe = false;
 
 async function zapewnijKolumnyProtokolow() {
@@ -47,6 +50,38 @@ function frazaLike(wartosc) {
   return `%${String(wartosc || "").trim().toLowerCase()}%`;
 }
 
+function normalizujTekst(wartosc) {
+  return String(wartosc || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function czyKontoSerwis(req) {
+  return normalizujTekst(req.uzytkownik?.email) === EMAIL_SERWISU;
+}
+
+function czyKontrahentSerwisu(wartosc) {
+  return normalizujTekst(wartosc) === normalizujTekst(KONTRAHENT_SERWISU);
+}
+
+function warunekDostepuSerwisu(req, prefiks = "p.") {
+  if (!czyKontoSerwis(req)) {
+    return { sql: "", wartosci: [] };
+  }
+
+  return {
+    sql: `LOWER(COALESCE(${prefiks}klient, ${prefiks}zlecajacy, '')) = LOWER(?)`,
+    wartosci: [KONTRAHENT_SERWISU]
+  };
+}
+
+function sprawdzDostepDoKontrahenta(req, wartosc) {
+  if (!czyKontoSerwis(req)) return true;
+  return czyKontrahentSerwisu(wartosc);
+}
+
 async function wygenerujNumerProtokolu(dataWejsciowa) {
   const rok = (() => {
     if (!dataWejsciowa) return new Date().getFullYear();
@@ -82,6 +117,7 @@ async function listaProtokolow(req, res) {
   const { q, data, technik_id } = req.query;
   const warunki = [];
   const wartosci = [];
+  const ograniczenieSerwisu = warunekDostepuSerwisu(req);
 
   if (q) {
     const frazaNumeru = normalizujFrazeWyszukiwania(q);
@@ -112,6 +148,10 @@ async function listaProtokolow(req, res) {
     warunki.push("p.technik_id = ?");
     wartosci.push(technik_id);
   }
+  if (ograniczenieSerwisu.sql) {
+    warunki.push(ograniczenieSerwisu.sql);
+    wartosci.push(...ograniczenieSerwisu.wartosci);
+  }
 
   const where = warunki.length ? `WHERE ${warunki.join(" AND ")}` : "";
   const wynik = await db.query(
@@ -128,15 +168,17 @@ async function listaProtokolow(req, res) {
 async function pobierzProtokol(req, res) {
   await zapewnijKolumnyProtokolow();
   const { id } = req.params;
+  const ograniczenieSerwisu = warunekDostepuSerwisu(req);
+  const warunekSerwisu = ograniczenieSerwisu.sql ? ` AND ${ograniczenieSerwisu.sql}` : "";
   const wynik = await db.query(
     `SELECT p.*, u.imie_nazwisko AS technik_nazwa
      FROM protokoly p
      LEFT JOIN uzytkownicy u ON u.id = p.technik_id
-     WHERE p.id = ?`,
-    [id]
+     WHERE p.id = ?${warunekSerwisu}`,
+    [id, ...ograniczenieSerwisu.wartosci]
   );
   if (!wynik.rows.length) {
-    return res.status(404).json({ blad: "Nie znaleziono protokolu." });
+    return res.status(404).json({ blad: "Nie znaleziono protokołu." });
   }
   return res.json(wynik.rows[0]);
 }
@@ -166,6 +208,11 @@ async function nowyProtokol(req, res) {
     czynnosci_serwisowe,
     uzyte_czesci
   } = req.body;
+  const klientDocelowy = klient || zlecajacy || "";
+  if (!sprawdzDostepDoKontrahenta(req, klientDocelowy)) {
+    return res.status(403).json({ blad: "To konto może tworzyć protokoły tylko dla kontrahenta Port Praski." });
+  }
+
   const nazwaProtokolu = normalizujNazweProtokolu(numer_protokolu) || (await wygenerujNumerProtokolu(data));
 
   const insert = await db.query(
@@ -177,7 +224,7 @@ async function nowyProtokol(req, res) {
     [
       nazwaProtokolu,
       data,
-      klient || zlecajacy || "",
+      czyKontoSerwis(req) ? KONTRAHENT_SERWISU : klientDocelowy,
       adres || adres_obiektu || "",
       telefon || "",
       opis_pracy || opis_usterki || "",
@@ -185,7 +232,7 @@ async function nowyProtokol(req, res) {
       technik_id || null,
       podpis_technika,
       podpis_klienta,
-      zlecajacy || klient || "",
+      zlecajacy || (czyKontoSerwis(req) ? KONTRAHENT_SERWISU : klient) || "",
       przyjmujacy_zlecenie || "",
       obiekt || "",
       adres_obiektu || adres || "",
@@ -228,7 +275,14 @@ async function edytujProtokol(req, res) {
     czynnosci_serwisowe,
     uzyte_czesci
   } = req.body;
+  const klientDocelowy = klient || zlecajacy || "";
+  if (!sprawdzDostepDoKontrahenta(req, klientDocelowy)) {
+    return res.status(403).json({ blad: "To konto może edytować protokoły tylko dla kontrahenta Port Praski." });
+  }
+
   const nazwaProtokolu = normalizujNazweProtokolu(numer_protokolu) || (await wygenerujNumerProtokolu(data));
+  const ograniczenieSerwisu = warunekDostepuSerwisu(req, "");
+  const warunekSerwisu = ograniczenieSerwisu.sql ? ` AND ${ograniczenieSerwisu.sql}` : "";
 
   const update = await db.query(
     `UPDATE protokoly
@@ -236,11 +290,11 @@ async function edytujProtokol(req, res) {
          podpis_technika=?, podpis_klienta=?, zlecajacy=?, przyjmujacy_zlecenie=?, obiekt=?, adres_obiektu=?,
          lokalizacja_usterki=?, opis_usterki=?, planowana_data_naprawy=?, uwagi_do_uslugi=?, kategoria_usterki_nazwa=?,
          czynnosci_serwisowe_json=?, uzyte_czesci_json=?, updated_at=NOW()
-     WHERE id=?`,
+     WHERE id=?${warunekSerwisu}`,
     [
       nazwaProtokolu,
       data,
-      klient || zlecajacy || "",
+      czyKontoSerwis(req) ? KONTRAHENT_SERWISU : klientDocelowy,
       adres || adres_obiektu || "",
       telefon || "",
       opis_pracy || opis_usterki || "",
@@ -248,7 +302,7 @@ async function edytujProtokol(req, res) {
       technik_id || null,
       podpis_technika,
       podpis_klienta,
-      zlecajacy || klient || "",
+      zlecajacy || (czyKontoSerwis(req) ? KONTRAHENT_SERWISU : klient) || "",
       przyjmujacy_zlecenie || "",
       obiekt || "",
       adres_obiektu || adres || "",
@@ -259,35 +313,40 @@ async function edytujProtokol(req, res) {
       kategoria_usterki_nazwa || "",
       JSON.stringify(Array.isArray(czynnosci_serwisowe) ? czynnosci_serwisowe : []),
       JSON.stringify(Array.isArray(uzyte_czesci) ? uzyte_czesci : []),
-      id
+      id,
+      ...ograniczenieSerwisu.wartosci
     ]
   );
   if (!update.rows.affectedRows) {
-    return res.status(404).json({ blad: "Nie znaleziono protokolu." });
+    return res.status(404).json({ blad: "Nie znaleziono protokołu." });
   }
-  const wynik = await db.query("SELECT * FROM protokoly WHERE id = ?", [id]);
+  const wynik = await db.query(`SELECT * FROM protokoly p WHERE p.id = ?${warunekSerwisu}`, [id, ...ograniczenieSerwisu.wartosci]);
   return res.json(wynik.rows[0]);
 }
 
 async function usunProtokol(req, res) {
   const { id } = req.params;
-  const wynik = await db.query("DELETE FROM protokoly WHERE id = ?", [id]);
+  const ograniczenieSerwisu = warunekDostepuSerwisu(req, "");
+  const warunekSerwisu = ograniczenieSerwisu.sql ? ` AND ${ograniczenieSerwisu.sql}` : "";
+  const wynik = await db.query(`DELETE FROM protokoly WHERE id = ?${warunekSerwisu}`, [id, ...ograniczenieSerwisu.wartosci]);
   if (!wynik.rows.affectedRows) {
-    return res.status(404).json({ blad: "Nie znaleziono protokolu." });
+    return res.status(404).json({ blad: "Nie znaleziono protokołu." });
   }
-  return res.json({ komunikat: "Protokol zostal usuniety." });
+  return res.json({ komunikat: "Protokół został usunięty." });
 }
 
 async function dodajZdjecia(req, res) {
   await zapewnijKolumnyProtokolow();
   const { id } = req.params;
   if (!req.files || !req.files.length) {
-    return res.status(400).json({ blad: "Brak zdjec do przeslania." });
+    return res.status(400).json({ blad: "Brak zdjęć do przesłania." });
   }
 
-  const protokol = await db.query("SELECT id FROM protokoly WHERE id = ?", [id]);
+  const ograniczenieSerwisu = warunekDostepuSerwisu(req, "");
+  const warunekSerwisu = ograniczenieSerwisu.sql ? ` AND ${ograniczenieSerwisu.sql}` : "";
+  const protokol = await db.query(`SELECT p.id FROM protokoly p WHERE p.id = ?${warunekSerwisu}`, [id, ...ograniczenieSerwisu.wartosci]);
   if (!protokol.rows.length) {
-    return res.status(404).json({ blad: "Nie znaleziono protokolu." });
+    return res.status(404).json({ blad: "Nie znaleziono protokołu." });
   }
 
   const dodane = [];
@@ -308,16 +367,18 @@ async function eksportujDokument(req, res) {
   await zapewnijKolumnyProtokolow();
   const { id } = req.params;
   const { typ = "pdf" } = req.query;
+  const ograniczenieSerwisu = warunekDostepuSerwisu(req);
+  const warunekSerwisu = ograniczenieSerwisu.sql ? ` AND ${ograniczenieSerwisu.sql}` : "";
 
   const wynik = await db.query(
     `SELECT p.*, u.imie_nazwisko AS technik_nazwa
      FROM protokoly p
      LEFT JOIN uzytkownicy u ON u.id = p.technik_id
-     WHERE p.id = ?`,
-    [id]
+     WHERE p.id = ?${warunekSerwisu}`,
+    [id, ...ograniczenieSerwisu.wartosci]
   );
   if (!wynik.rows.length) {
-    return res.status(404).json({ blad: "Nie znaleziono protokolu." });
+    return res.status(404).json({ blad: "Nie znaleziono protokołu." });
   }
   const dane = wynik.rows[0];
   const nazwaPliku = nazwaPlikuBezpieczna(dane.numer_protokolu);
@@ -329,7 +390,7 @@ async function eksportujDokument(req, res) {
     return res.send(buf);
   }
 
-  return res.status(400).json({ blad: "Nieobslugiwany typ eksportu." });
+  return res.status(400).json({ blad: "Nieobsługiwany typ eksportu." });
 }
 
 module.exports = {

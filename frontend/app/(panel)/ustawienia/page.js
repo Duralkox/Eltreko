@@ -7,7 +7,7 @@ export default function Ustawienia() {
       <section className="karta-szklana rounded-2xl p-4 text-sm text-slate-300">
         <p className="mb-2 font-medium">Instalacja aplikacji na telefonie (PWA)</p>
         <p>
-          OtwĂłrz EltrekoAPP w przeglÄ…darce i wybierz opcjÄ™ "Zainstaluj aplikacjÄ™". Po instalacji system dziaĹ‚a jak
+          Otwórz EltrekoAPP w przeglądarce i wybierz opcję "Zainstaluj aplikację". Po instalacji system działa jak
           natywna aplikacja mobilna.
         </p>
       </section>

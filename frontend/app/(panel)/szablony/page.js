@@ -40,7 +40,7 @@ export default function Szablony() {
 
   return (
     <div className="space-y-6">
-      <SekcjaNaglowek tytul="Szablony dokumentĂłw" opis="Zmienna treĹ›Ä‡: {{numer}}, {{data}}, {{klient}}, {{adres}}, {{opis}}, {{technik}}" />
+      <SekcjaNaglowek tytul="Szablony dokumentów" opis="Zmienna treść: {{numer}}, {{data}}, {{klient}}, {{adres}}, {{opis}}, {{technik}}" />
 
       {admin ? (
         <form onSubmit={przeslij} className="karta-szklana rounded-2xl p-4">
@@ -48,11 +48,11 @@ export default function Szablony() {
             <input className="pole" placeholder="Nazwa szablonu" value={nazwa} onChange={(e) => setNazwa(e.target.value)} />
             <input className="pole" type="file" accept=".docx" onChange={(e) => setPlik(e.target.files?.[0] || null)} required />
           </div>
-          <button className="przycisk-glowny mt-3">PrzeĹ›lij szablon .docx</button>
+          <button className="przycisk-glowny mt-3">Prześlij szablon .docx</button>
         </form>
       ) : (
         <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
-          Tylko Administrator moĹĽe dodawaÄ‡ i usuwaÄ‡ szablony.
+          Tylko Administrator może dodawać i usuwać szablony.
         </p>
       )}
 
@@ -64,12 +64,12 @@ export default function Szablony() {
               <p className="text-sm text-slate-400">{new Date(s.created_at).toLocaleString("pl-PL")}</p>
               {admin ? (
                 <button className="przycisk-wtorny mt-2" onClick={() => usun(s.id)}>
-                  UsuĹ„ szablon
+                  Usuń szablon
                 </button>
               ) : null}
             </article>
           ))}
-          {!lista.length ? <p className="text-sm text-slate-400">Brak szablonĂłw.</p> : null}
+          {!lista.length ? <p className="text-sm text-slate-400">Brak szablonów.</p> : null}
         </div>
       </section>
     </div>
