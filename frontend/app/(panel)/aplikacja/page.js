@@ -10,14 +10,6 @@ import {
 } from "@heroicons/react/24/outline";
 import SekcjaNaglowek from "../../../components/SekcjaNaglowek";
 
-function wykryjIos() {
-  if (typeof window === "undefined") return false;
-  const userAgent = window.navigator.userAgent || "";
-  const platform = window.navigator.platform || "";
-  const iPadNaMacu = platform === "MacIntel" && window.navigator.maxTouchPoints > 1;
-  return /iPad|iPhone|iPod/.test(userAgent) || iPadNaMacu;
-}
-
 function czyStandalone() {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
@@ -79,7 +71,7 @@ export default function AplikacjaPage() {
     <div className="space-y-4 sm:space-y-6">
       <SekcjaNaglowek
         tytul="Aplikacja"
-        opis="Dodaj EltrekoAPP do ekranu głównego telefonu."
+        opis="Dodaj aplikację do ekranu głównego telefonu."
       />
 
       {komunikat ? (
@@ -93,8 +85,7 @@ export default function AplikacjaPage() {
           <div className="relative overflow-hidden rounded-[1.6rem] border border-emerald-300/12 bg-[radial-gradient(circle_at_20%_0%,rgba(92,211,126,0.16),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-4 sm:p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-200/85">EltrekoAPP</p>
-                <h2 className="mt-3 max-w-lg text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+                <h2 className="max-w-lg text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
                   Panel serwisowy pod ręką
                 </h2>
                 <p className="mt-3 max-w-md text-sm leading-7 text-slate-300 sm:text-base">
@@ -103,7 +94,13 @@ export default function AplikacjaPage() {
               </div>
 
               <div className="mx-auto flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.75rem] border border-white/10 bg-[#1d2c34] shadow-[0_18px_48px_rgba(0,0,0,0.22)] sm:mx-0 sm:h-28 sm:w-28">
-                <Image src="/ikona-192.png" alt="Ikona EltrekoAPP" width={76} height={76} className="h-[4.25rem] w-[4.25rem] object-contain sm:h-20 sm:w-20" />
+                <Image
+                  src="/ikona-192.png"
+                  alt="Ikona EltrekoAPP"
+                  width={76}
+                  height={76}
+                  className="h-[4.25rem] w-[4.25rem] object-contain sm:h-20 sm:w-20"
+                />
               </div>
             </div>
 

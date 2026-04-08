@@ -34,10 +34,7 @@ export default function StartPage() {
         <div className="grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(360px,1fr)] xl:items-center">
           <div className="space-y-6 anim-panel">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-emerald-300/85">
-                EltrekoAPP
-              </p>
-              <p className="mt-3 max-w-xl text-base leading-7 text-slate-300/88 sm:text-lg">
+              <p className="max-w-xl text-base leading-7 text-slate-300/88 sm:text-lg">
                 Szybki dostęp do protokołów, odczytów liczników i dokumentów technicznych.
               </p>
             </div>

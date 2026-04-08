@@ -216,8 +216,9 @@ export default function Sidebar({ className = "", onNavigate = null, pokazNaglow
       </div>
       ) : null}
 
-      <div className="rounded-[1.75rem] bg-[linear-gradient(180deg,rgba(215,169,92,0.1),rgba(255,255,255,0.03))] p-[1px] shadow-[0_14px_30px_rgba(9,18,28,0.1)]">
-        <nav className="space-y-1.5 rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(44,58,72,0.96),rgba(34,48,61,0.94))] p-3">
+      <div className="space-y-3">
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/16 to-transparent" />
+        <nav className="space-y-1.5 px-1">
           {menuGlownePrzedElementami.map((item) => (
             <div key={item.href} onClick={onNavigate ? () => onNavigate() : undefined}>
               <Pozycja {...item} aktywny={pathname === item.href} />
@@ -244,16 +245,18 @@ export default function Sidebar({ className = "", onNavigate = null, pokazNaglow
             </div>
           ))}
         </nav>
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/7 to-transparent" />
       </div>
 
       <div className="mx-auto my-4 flex w-full justify-center px-4">
         <div className="h-px w-40 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
       </div>
 
-      <div className="my-5 rounded-[1.75rem] bg-[linear-gradient(180deg,rgba(215,169,92,0.085),rgba(255,255,255,0.025))] p-[1px] shadow-[0_14px_28px_rgba(9,18,28,0.09)]">
-        <div className="rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(44,58,72,0.95),rgba(34,48,61,0.93))] p-3">
+      <div className="my-5 space-y-3">
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/18 to-transparent" />
+        <div>
           <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-[0.24em] text-slate-400">PPOŻ</p>
-          <nav className="space-y-1.5">
+          <nav className="space-y-1.5 px-1">
             {MENU_PPOZ.map((item) => (
               <div key={item.href} onClick={onNavigate ? () => onNavigate() : undefined}>
                 <Pozycja
