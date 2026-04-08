@@ -192,7 +192,7 @@ export default function Sidebar({ className = "", onNavigate = null, pokazNaglow
 
   return (
     <aside
-      className={`w-full rounded-2xl bg-transparent p-4 shadow-none md:w-80 md:p-5 ${className}`}
+      className={`w-full rounded-2xl bg-[radial-gradient(circle_at_top,rgba(82,211,126,0.08),transparent_22%),linear-gradient(180deg,rgba(38,52,65,0.92),rgba(31,44,56,0.9))] p-4 shadow-[0_18px_36px_rgba(7,14,22,0.16)] md:w-80 md:p-5 ${className}`}
     >
       {pokazNaglowek ? (
       <div className="mb-6">
