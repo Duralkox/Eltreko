@@ -38,27 +38,6 @@ export default function StartPage() {
               </p>
             </div>
 
-            <div className="hidden gap-3 lg:grid lg:grid-cols-3">
-              <div className="rounded-[1.35rem] bg-white/[0.035] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Protokoły</p>
-                <p className="mt-3 text-sm leading-6 text-slate-300/88">
-                  Tworzenie dokumentów serwisowych, eksport PDF i szybka obsługa zgłoszeń.
-                </p>
-              </div>
-              <div className="rounded-[1.35rem] bg-white/[0.035] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Odczyty liczników</p>
-                <p className="mt-3 text-sm leading-6 text-slate-300/88">
-                  Wygodne wpisywanie miesięcy, zapis zmian i przygotowanie danych do eksportu.
-                </p>
-              </div>
-              <div className="rounded-[1.35rem] bg-white/[0.035] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Zgłoszenia</p>
-                <p className="mt-3 text-sm leading-6 text-slate-300/88">
-                  Start pracy z bieżącymi sprawami, szybkie przejście do dokumentów i modułów.
-                </p>
-              </div>
-            </div>
-
             <div className="grid gap-3 sm:grid-cols-3">
               {KAFLE.map(({ href, etykieta, ikona: Ikona }) => (
                 <Link
@@ -77,22 +56,13 @@ export default function StartPage() {
               ))}
             </div>
 
-            <div className="hidden lg:grid lg:grid-cols-[1.2fr_1fr] lg:gap-3">
-              <div className="rounded-[1.45rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Tryb pracy</p>
-                <p className="mt-3 text-sm leading-6 text-slate-300/88">
-                  Panel startowy został przygotowany pod szybkie wejście w najczęściej używane moduły,
-                  bez szukania ich po całym systemie. Na komputerze masz pełny podgląd, a w aplikacji
-                  mobilnej ten widok pozostaje prostszy i lżejszy.
-                </p>
-              </div>
-              <div className="rounded-[1.45rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Skróty</p>
-                <p className="mt-3 text-sm leading-6 text-slate-300/88">
-                  Najwygodniej wejść stąd bezpośrednio do protokołów, odczytów lub zgłoszeń. To miejsce
-                  ma dawać szybki start pracy, a nie pełny dashboard z nadmiarem informacji.
-                </p>
-              </div>
+            <div className="hidden rounded-[1.45rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] lg:block">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">O systemie</p>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300/88">
+                EltrekoAPP łączy w jednym miejscu pracę na protokołach, odczytach liczników i zgłoszeniach.
+                Ten ekran startowy ma dawać szybkie wejście do najważniejszych modułów, a sama aplikacja
+                jest przygotowana tak, żeby wygodnie działała zarówno na komputerze, jak i w wersji mobilnej.
+              </p>
             </div>
           </div>
 
