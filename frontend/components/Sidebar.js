@@ -191,9 +191,7 @@ export default function Sidebar({ className = "", onNavigate = null, pokazNaglow
   }
 
   return (
-    <aside
-      className={`w-full rounded-2xl bg-[radial-gradient(circle_at_top,rgba(82,211,126,0.08),transparent_22%),linear-gradient(180deg,rgba(38,52,65,0.92),rgba(31,44,56,0.9))] p-4 shadow-[0_18px_36px_rgba(7,14,22,0.16)] md:w-80 md:p-5 ${className}`}
-    >
+    <aside className={`karta-szklana w-full rounded-2xl p-4 md:w-80 md:p-5 ${className}`}>
       {pokazNaglowek ? (
       <div className="mb-6">
         <div className="mb-5 px-2 pt-1">
@@ -218,9 +216,8 @@ export default function Sidebar({ className = "", onNavigate = null, pokazNaglow
       </div>
       ) : null}
 
-      <div className="space-y-3">
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/16 to-transparent" />
-        <nav className="space-y-1.5 px-1">
+      <div className="rounded-[1.75rem] bg-[linear-gradient(180deg,rgba(215,169,92,0.1),rgba(255,255,255,0.03))] p-[1px] shadow-[0_14px_30px_rgba(9,18,28,0.1)]">
+        <nav className="space-y-1.5 rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(44,58,72,0.96),rgba(34,48,61,0.94))] p-3">
           {menuGlownePrzedElementami.map((item) => (
             <div key={item.href} onClick={onNavigate ? () => onNavigate() : undefined}>
               <Pozycja {...item} aktywny={pathname === item.href} />
@@ -247,18 +244,16 @@ export default function Sidebar({ className = "", onNavigate = null, pokazNaglow
             </div>
           ))}
         </nav>
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/7 to-transparent" />
       </div>
 
       <div className="mx-auto my-4 flex w-full justify-center px-4">
         <div className="h-px w-40 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
       </div>
 
-      <div className="my-5 space-y-3">
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/18 to-transparent" />
-        <div>
+      <div className="my-5 rounded-[1.75rem] bg-[linear-gradient(180deg,rgba(215,169,92,0.085),rgba(255,255,255,0.025))] p-[1px] shadow-[0_14px_28px_rgba(9,18,28,0.09)]">
+        <div className="rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(44,58,72,0.95),rgba(34,48,61,0.93))] p-3">
           <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-[0.24em] text-slate-400">PPOŻ</p>
-          <nav className="space-y-1.5 px-1">
+          <nav className="space-y-1.5">
             {MENU_PPOZ.map((item) => (
               <div key={item.href} onClick={onNavigate ? () => onNavigate() : undefined}>
                 <Pozycja
