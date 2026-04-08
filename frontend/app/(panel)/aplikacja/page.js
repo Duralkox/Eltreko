@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   ArrowDownTrayIcon,
@@ -25,12 +25,10 @@ function czyStandalone() {
 
 export default function AplikacjaPage() {
   const [promptInstalacji, setPromptInstalacji] = useState(null);
-  const [czyIos, setCzyIos] = useState(false);
   const [czyZainstalowana, setCzyZainstalowana] = useState(false);
   const [komunikat, setKomunikat] = useState("");
 
   useEffect(() => {
-    setCzyIos(wykryjIos());
     setCzyZainstalowana(czyStandalone());
 
     function przechwycInstalacje(event) {
@@ -53,13 +51,6 @@ export default function AplikacjaPage() {
     };
   }, []);
 
-  const statusInstalacji = useMemo(() => {
-    if (czyZainstalowana) return "Aplikacja działa już w trybie zainstalowanym.";
-    if (promptInstalacji) return "Możesz zainstalować aplikację jednym kliknięciem.";
-    if (czyIos) return "Na iPhone instalacja odbywa się przez menu Udostępnij.";
-    return "Jeśli przeglądarka udostępni instalację, przycisk uruchomi dodanie aplikacji.";
-  }, [czyIos, czyZainstalowana, promptInstalacji]);
-
   async function zainstalujAplikacje() {
     setKomunikat("");
 
@@ -69,7 +60,7 @@ export default function AplikacjaPage() {
     }
 
     if (!promptInstalacji) {
-      setKomunikat("Użyj instrukcji dla swojego telefonu.");
+      setKomunikat("Użyj instrukcji instalacji dla swojego telefonu.");
       return;
     }
 
@@ -85,10 +76,10 @@ export default function AplikacjaPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <SekcjaNaglowek
         tytul="Aplikacja"
-        opis="Dodaj EltrekoAPP do ekranu głównego telefonu i korzystaj z panelu jak z aplikacji."
+        opis="Dodaj EltrekoAPP do ekranu głównego telefonu."
       />
 
       {komunikat ? (
@@ -97,53 +88,50 @@ export default function AplikacjaPage() {
         </p>
       ) : null}
 
-      <section className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-        <article className="karta-szklana overflow-hidden rounded-3xl p-4 sm:p-6">
-          <div className="relative overflow-hidden rounded-[1.75rem] border border-emerald-300/12 bg-[radial-gradient(circle_at_20%_0%,rgba(92,211,126,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.055),rgba(255,255,255,0.018))] p-5 sm:p-6">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200/85">EltrekoAPP</p>
-                <h2 className="mt-4 max-w-xl text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl">
+      <section className="grid gap-4 xl:grid-cols-[1fr_0.92fr]">
+        <article className="karta-szklana overflow-hidden rounded-3xl p-3 sm:p-5">
+          <div className="relative overflow-hidden rounded-[1.6rem] border border-emerald-300/12 bg-[radial-gradient(circle_at_20%_0%,rgba(92,211,126,0.16),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-4 sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-200/85">EltrekoAPP</p>
+                <h2 className="mt-3 max-w-lg text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
                   Panel serwisowy pod ręką
                 </h2>
-                <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
-                  Zainstalowana wersja otwiera się wygodniej na telefonie i daje szybki dostęp do protokołów, odczytów oraz dokumentów serwisowych.
+                <p className="mt-3 max-w-md text-sm leading-7 text-slate-300 sm:text-base">
+                  Wersja zainstalowana działa wygodniej na telefonie i szybciej otwiera najważniejsze moduły.
                 </p>
               </div>
 
-              <div className="mx-auto flex h-32 w-32 shrink-0 items-center justify-center rounded-[2rem] border border-white/10 bg-[#1d2c34] shadow-[0_22px_60px_rgba(0,0,0,0.24)] md:mx-0">
-                <Image src="/ikona-192.png" alt="Ikona EltrekoAPP" width={88} height={88} className="h-20 w-20 object-contain" />
+              <div className="mx-auto flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.75rem] border border-white/10 bg-[#1d2c34] shadow-[0_18px_48px_rgba(0,0,0,0.22)] sm:mx-0 sm:h-28 sm:w-28">
+                <Image src="/ikona-192.png" alt="Ikona EltrekoAPP" width={76} height={76} className="h-[4.25rem] w-[4.25rem] object-contain sm:h-20 sm:w-20" />
               </div>
             </div>
 
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-5">
               <button
                 type="button"
                 onClick={zainstalujAplikacje}
-                className="przycisk-glowny inline-flex items-center justify-center gap-2 px-5 py-3 text-base"
+                className="przycisk-glowny inline-flex w-full items-center justify-center gap-2 px-5 py-3 text-base sm:w-auto"
               >
                 <ArrowDownTrayIcon className="h-5 w-5" />
                 Zainstaluj aplikację
               </button>
-              <p className="text-sm text-slate-400">{statusInstalacji}</p>
             </div>
           </div>
         </article>
 
-        <article className="karta-szklana rounded-3xl p-4 sm:p-6">
-          <div className="flex items-start gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-300/15 bg-emerald-500/10 text-emerald-200">
-              <DevicePhoneMobileIcon className="h-6 w-6" />
+        <article className="karta-szklana rounded-3xl p-3 sm:p-5">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-300/15 bg-emerald-500/10 text-emerald-200">
+              <DevicePhoneMobileIcon className="h-5 w-5" />
             </span>
             <div>
               <h2 className="text-xl font-semibold text-slate-50">Jak instalować</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                Android i iPhone robią to trochę inaczej, więc poniżej masz dwie krótkie instrukcje.
-              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Dwie krótkie instrukcje dla Androida i iPhone.</p>
             </div>
           </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-5 space-y-3">
             <div className="rounded-2xl border border-white/8 bg-white/[0.025] p-4">
               <div className="flex items-center gap-3">
                 <CheckCircleIcon className="h-5 w-5 text-emerald-300" />
@@ -151,7 +139,7 @@ export default function AplikacjaPage() {
               </div>
               <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
                 <li>1. Otwórz stronę w Chrome albo Edge.</li>
-                <li>2. Kliknij `Zainstaluj aplikację` na tej stronie.</li>
+                <li>2. Kliknij Zainstaluj aplikację na tej stronie.</li>
                 <li>3. Potwierdź dodanie aplikacji do ekranu głównego.</li>
               </ol>
             </div>
@@ -162,9 +150,9 @@ export default function AplikacjaPage() {
                 <h3 className="font-semibold text-slate-100">iPhone / Safari</h3>
               </div>
               <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-                <li>1. Otwórz `zgloszeniaeltreko.pl` w Safari.</li>
+                <li>1. Otwórz zgloszeniaeltreko.pl w Safari.</li>
                 <li>2. Kliknij ikonę udostępniania.</li>
-                <li>3. Wybierz `Dodaj do ekranu początkowego`.</li>
+                <li>3. Wybierz Dodaj do ekranu początkowego.</li>
               </ol>
             </div>
           </div>
