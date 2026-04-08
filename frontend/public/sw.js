@@ -1,18 +1,15 @@
+const CACHE_NAME = "eltrekoapp-v3";
+const PRECACHE_URLS = ["/", "/logowanie", "/manifest.json", "/ikona-192.png", "/ikona-512.png", "/icon.png"];
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open("eltrekoapp-v1").then((cache) =>
-      cache.addAll(["/", "/logowanie", "/manifest.json", "/ikona-192.png", "/ikona-512.png"])
-    )
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)));
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key !== "eltrekoapp-v1").map((key) => caches.delete(key))
-      )
+      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
     )
   );
   self.clients.claim();
@@ -20,19 +17,22 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
   const url = new URL(event.request.url);
-  const taSamaDomena = url.origin === self.location.origin;
-  const nawigacja = event.request.mode === "navigate";
+  if (url.origin !== self.location.origin) return;
 
-  if (!taSamaDomena) return;
+  const isNavigation = event.request.mode === "navigate";
+  const isNextAsset = url.pathname.startsWith("/_next/");
+  const isStaticAsset = /\.(?:js|css|png|svg|jpg|jpeg|webp|ico|woff2?)$/i.test(url.pathname);
 
-  // Fallback HTML tylko dla nawigacji, aby nie podmieniać CSS/JS odpowiedzią strony.
-  if (nawigacja) {
+  if (isNavigation) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const cloned = response.clone();
-          caches.open("eltrekoapp-v1").then((cache) => cache.put(event.request, cloned));
+          if (response.ok) {
+            const cloned = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+          }
           return response;
         })
         .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/logowanie")))
@@ -40,16 +40,22 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (isNextAsset || isStaticAsset) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const cloned = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (response.ok) {
-          const cloned = response.clone();
-          caches.open("eltrekoapp-v1").then((cache) => cache.put(event.request, cloned));
-        }
-        return response;
-      });
-    })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });

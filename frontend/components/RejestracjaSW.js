@@ -13,7 +13,10 @@ export default function RejestracjaSW() {
       return;
     }
 
-    navigator.serviceWorker.register("/sw.js").catch(() => null);
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((rejestracja) => rejestracja.update().catch(() => null))
+      .catch(() => null);
   }, []);
 
   return null;

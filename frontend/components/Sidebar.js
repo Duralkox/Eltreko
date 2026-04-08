@@ -116,7 +116,7 @@ function PozycjaRozwijana({ etykieta, ikona: Ikona, aktywny, otwarta, onClick, c
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ className = "", onNavigate = null, pokazNaglowek = true, pokazStopke = true }) {
   const pathname = usePathname();
   const router = useRouter();
   const sesja = pobierzSesje();
@@ -190,7 +190,8 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="karta-szklana w-full rounded-2xl p-4 md:w-80 md:p-5">
+    <aside className={`karta-szklana w-full rounded-2xl p-4 md:w-80 md:p-5 ${className}`}>
+      {pokazNaglowek ? (
       <div className="mb-6">
         <div className="mb-5 px-2 pt-1">
           <div className="flex justify-center">
@@ -212,11 +213,14 @@ export default function Sidebar() {
           <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">{rolaUzytkownika}</p>
         </div>
       </div>
+      ) : null}
 
       <div className="rounded-[1.75rem] bg-[linear-gradient(180deg,rgba(215,169,92,0.1),rgba(255,255,255,0.03))] p-[1px] shadow-[0_14px_30px_rgba(9,18,28,0.1)]">
         <nav className="space-y-1.5 rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(44,58,72,0.96),rgba(34,48,61,0.94))] p-3">
           {menuGlownePrzedElementami.map((item) => (
-            <Pozycja key={item.href} {...item} aktywny={pathname === item.href} />
+            <div key={item.href} onClick={onNavigate ? () => onNavigate() : undefined}>
+              <Pozycja {...item} aktywny={pathname === item.href} />
+            </div>
           ))}
 
           <PozycjaRozwijana
@@ -227,12 +231,16 @@ export default function Sidebar() {
             onClick={() => setElementyOtwarte((prev) => !prev)}
           >
             {MENU_ELEMENTY.map((item) => (
-              <Pozycja key={item.href} {...item} aktywny={pathname === item.href} />
+              <div key={item.href} onClick={onNavigate ? () => onNavigate() : undefined}>
+                <Pozycja {...item} aktywny={pathname === item.href} />
+              </div>
             ))}
           </PozycjaRozwijana>
 
           {menuGlownePoElementach.map((item) => (
-            <Pozycja key={item.href} {...item} aktywny={pathname === item.href} />
+            <div key={item.href} onClick={onNavigate ? () => onNavigate() : undefined}>
+              <Pozycja {...item} aktywny={pathname === item.href} />
+            </div>
           ))}
         </nav>
       </div>
@@ -246,17 +254,19 @@ export default function Sidebar() {
           <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-[0.24em] text-slate-400">PPOŻ</p>
           <nav className="space-y-1.5">
             {MENU_PPOZ.map((item) => (
-              <Pozycja
-                key={item.href}
-                {...item}
-                aktywny={pathname === item.href}
-                badge={item.href === "/ppoz/przeglady" && liczbaAktywnychPpoz > 0 ? liczbaAktywnychPpoz : null}
-              />
+              <div key={item.href} onClick={onNavigate ? () => onNavigate() : undefined}>
+                <Pozycja
+                  {...item}
+                  aktywny={pathname === item.href}
+                  badge={item.href === "/ppoz/przeglady" && liczbaAktywnychPpoz > 0 ? liczbaAktywnychPpoz : null}
+                />
+              </div>
             ))}
           </nav>
         </div>
       </div>
 
+      {pokazStopke ? (
       <button
         type="button"
         onClick={wyloguj}
@@ -265,8 +275,9 @@ export default function Sidebar() {
         <ArrowLeftOnRectangleIcon className="h-5 w-5" />
         Wyloguj
       </button>
+      ) : null}
 
-      <p className="mt-4 text-center text-[10px] text-slate-500/85">© Eltreko. Wszelkie prawa zastrzeżone.</p>
+      {pokazStopke ? <p className="mt-4 text-center text-[10px] text-slate-500/85">© Eltreko. Wszelkie prawa zastrzeżone.</p> : null}
     </aside>
   );
 }
