@@ -62,7 +62,7 @@ export default function PanelLayout({ children }) {
 
   return (
     <main className="min-h-screen overflow-x-hidden p-2 sm:p-3 md:p-6">
-      <div className="mx-auto mb-3 flex w-full items-center justify-between gap-3 rounded-2xl bg-[linear-gradient(135deg,rgba(82,196,26,0.08),rgba(255,255,255,0.02))] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_24px_rgba(0,0,0,0.12)] md:hidden">
+      <div className="mx-auto mb-3 flex w-full items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-2.5 shadow-[0_10px_28px_rgba(0,0,0,0.12)] md:hidden">
         <Image
           src="/logo.png"
           alt="Eltreko logo"
@@ -73,7 +73,7 @@ export default function PanelLayout({ children }) {
         <button
           type="button"
           onClick={() => setMenuOtwarte((prev) => !prev)}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.05] text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-100"
           aria-label={menuOtwarte ? "Zamknij menu" : "Otwórz menu"}
         >
           {menuOtwarte ? <XMarkIcon className="h-5 w-5" /> : <Bars3Icon className="h-5 w-5" />}
