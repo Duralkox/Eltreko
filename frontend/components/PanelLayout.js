@@ -62,7 +62,7 @@ export default function PanelLayout({ children }) {
 
   return (
     <main className="min-h-screen overflow-x-hidden p-2 sm:p-3 md:p-6">
-      <div className="mx-auto mb-3 flex w-full items-center justify-between gap-3 rounded-2xl bg-[linear-gradient(180deg,rgba(40,54,66,0.92),rgba(34,47,59,0.88))] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_24px_rgba(0,0,0,0.16)] md:hidden">
+      <div className="mx-auto mb-2 flex w-full items-center justify-between gap-3 rounded-2xl bg-[linear-gradient(180deg,rgba(40,54,66,0.94),rgba(34,47,59,0.9))] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_24px_rgba(0,0,0,0.16)] md:hidden">
         <Image
           src="/logo.png"
           alt="Eltreko logo"
@@ -79,7 +79,7 @@ export default function PanelLayout({ children }) {
           {menuOtwarte ? <XMarkIcon className="h-5 w-5" /> : <Bars3Icon className="h-5 w-5" />}
         </button>
       </div>
-      <div className="mx-auto mb-4 h-px w-28 bg-gradient-to-r from-transparent via-white/18 to-transparent md:hidden" />
+      <div className="mx-auto mb-2 h-px w-20 bg-gradient-to-r from-transparent via-white/10 to-transparent md:hidden" />
 
       {menuOtwarte ? (
         <div className="fixed inset-0 z-40 md:hidden">
