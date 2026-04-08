@@ -37,10 +37,7 @@ export default function StartPage() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-emerald-300/85">
                 EltrekoAPP
               </p>
-              <h1 className="mt-4 max-w-[10ch] text-4xl font-semibold leading-[1.04] tracking-tight text-slate-50 sm:text-5xl">
-                Mobilny panel serwisowy
-              </h1>
-              <p className="mt-4 max-w-xl text-base leading-7 text-slate-300/88 sm:text-lg">
+              <p className="mt-3 max-w-xl text-base leading-7 text-slate-300/88 sm:text-lg">
                 Szybki dostęp do protokołów, odczytów liczników i dokumentów technicznych.
               </p>
             </div>
@@ -68,7 +65,7 @@ export default function StartPage() {
             <div className="overflow-hidden rounded-[2rem] bg-white/[0.025]">
               <Image
                 src="/panel-start.png"
-                alt="Mobilny panel serwisowy Eltreko"
+                alt="Panel startowy Eltreko"
                 width={1152}
                 height={768}
                 className="h-auto w-full object-cover"
