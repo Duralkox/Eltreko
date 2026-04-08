@@ -496,11 +496,7 @@ function wartoscMiesiecznaTekst(wartosc) {
 }
 
 function przywrocScrollPoZapisie(pozycja) {
-  if (typeof window === "undefined") return;
-  const x = window.scrollX;
-  const ustaw = () => window.scrollTo({ top: pozycja, left: x, behavior: "auto" });
-  window.requestAnimationFrame(ustaw);
-  window.setTimeout(ustaw, 80);
+  void pozycja;
 }
 
 function zastepczaKreska(wartosc) {
