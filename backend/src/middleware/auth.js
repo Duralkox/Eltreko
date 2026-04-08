@@ -30,16 +30,30 @@ async function pobierzUzytkownikaZSupabase(token) {
     [dane.email]
   );
 
-  if (!wynik.rows.length) {
-    return null;
+  if (wynik.rows.length) {
+    const uzytkownik = wynik.rows[0];
+    return {
+      id: uzytkownik.id,
+      email: uzytkownik.email,
+      rola: uzytkownik.rola,
+      imieNazwisko: uzytkownik.imie_nazwisko,
+      provider: "supabase"
+    };
   }
 
-  const uzytkownik = wynik.rows[0];
+  const metadata = dane.user_metadata || {};
+  const imieNazwisko =
+    metadata.imieNazwisko ||
+    metadata.imie_nazwisko ||
+    metadata.full_name ||
+    metadata.name ||
+    dane.email;
+
   return {
-    id: uzytkownik.id,
-    email: uzytkownik.email,
-    rola: uzytkownik.rola,
-    imieNazwisko: uzytkownik.imie_nazwisko,
+    id: `supabase:${dane.id || dane.email}`,
+    email: dane.email,
+    rola: "Technik",
+    imieNazwisko,
     provider: "supabase"
   };
 }
