@@ -2767,8 +2767,247 @@ export default function OdczytyLicznikowPage() {
       ) : null}
 
       <section className="karta-szklana anim-panel rounded-2xl p-4 space-y-4">
-        <div className="mx-auto grid max-w-[1080px] gap-3 xl:grid-cols-[minmax(0,1fr)_210px]">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+        <div className="mx-auto grid max-w-[1080px] gap-3 xl:grid-cols-[210px_minmax(0,1fr)]">
+          <div className="relative order-1 rounded-2xl border border-white/10 bg-white/[0.04] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] xl:order-1">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Eksport</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">PDF i Excel do pobrania ręcznie.</p>
+              </div>
+            </div>
+            <div className="flex items-start justify-start xl:justify-center">
+              <button
+                className="przycisk-glowny flex h-8 min-w-[132px] items-center justify-center px-4 py-1 text-center text-sm"
+                type="button"
+                onClick={() => {
+                  setKomunikatEksportu("");
+                  setPokazOknoEksportu(true);
+                }}
+              >
+                Eksport
+              </button>
+            </div>
+
+            {pokazOknoEksportu ? (
+              <div className="anim-dropdown absolute right-0 top-[calc(100%+12px)] z-30 w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-panel p-4 shadow-2xl">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Eksport</h3>
+                    <p className="text-sm text-slate-400">Ustaw parametry eksportu.</p>
+                  </div>
+                  <button className="przycisk-wtorny h-9 px-3 py-1 text-sm" type="button" onClick={() => setPokazOknoEksportu(false)}>
+                    Zamknij
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {komunikatEksportu ? <p className="text-sm text-emerald-300">{komunikatEksportu}</p> : null}
+
+                  <input
+                    className={`pole h-10 min-w-0 px-3 py-1.5 ${bladDatyEksportu ? "border-red-500/90 ring-1 ring-red-500/60" : ""}`}
+                    type="date"
+                    value={dataOdczytuEksportu}
+                    onChange={(e) => {
+                      setDataOdczytuEksportu(e.target.value);
+                      if (e.target.value) {
+                        setBladDatyEksportu(false);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (!String(e.target.value || "").trim()) {
+                        setBladDatyEksportu(true);
+                      }
+                    }}
+                  />
+
+                  <div className="relative">
+                    <input
+                      className={`pole h-10 px-3 py-1.5 ${bladKontrahentaEksportu ? "border-red-500/90 ring-1 ring-red-500/60" : ""}`}
+                      value={qKontrahentEksportu}
+                      onChange={(e) => {
+                        setQKontrahentEksportu(e.target.value);
+                        setKontrahentEksportu(e.target.value);
+                        if (e.target.value.trim()) {
+                          setBladKontrahentaEksportu(false);
+                        }
+                        setPokazListeKontrahentowEksportu(true);
+                      }}
+                      onFocus={() => setPokazListeKontrahentowEksportu(true)}
+                      onBlur={() => window.setTimeout(() => setPokazListeKontrahentowEksportu(false), 150)}
+                      onBlurCapture={(e) => {
+                        if (!String(e.target.value || "").trim()) {
+                          setBladKontrahentaEksportu(true);
+                        }
+                      }}
+                      placeholder="Wybór kontrahenta"
+                    />
+                    {pokazListeKontrahentowEksportu && przefiltrowaniKontrahenciEksportu.length ? (
+                      <div className="anim-dropdown absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-xl border border-emerald-500/20 bg-slate-900/95 p-1 shadow-2xl divide-y divide-emerald-500/25">
+                        <button
+                          type="button"
+                          className="block w-full px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-emerald-500/10"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setQKontrahentEksportu("Wszyscy kontrahenci");
+                            setKontrahentEksportu("");
+                            setBladKontrahentaEksportu(false);
+                            setPokazListeKontrahentowEksportu(false);
+                          }}
+                        >
+                          Wszyscy kontrahenci
+                        </button>
+                        {przefiltrowaniKontrahenciEksportu.map((nazwa) => (
+                          <button
+                            key={nazwa}
+                            type="button"
+                            className="block w-full px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-emerald-500/10"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setQKontrahentEksportu(nazwa);
+                              setKontrahentEksportu(nazwa);
+                              setBladKontrahentaEksportu(false);
+                              setPokazListeKontrahentowEksportu(false);
+                            }}
+                          >
+                            {nazwa}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="relative">
+                    <input
+                      className={`pole h-10 px-3 py-1.5 ${bladMiesiacaEksportu ? "!border-red-400/90 !ring-1 !ring-red-400/70 focus:!border-red-400" : ""}`}
+                      value={qMiesiacEksportu}
+                      onChange={(e) => {
+                        setQMiesiacEksportu(duzaLitera(e.target.value));
+                        setBladMiesiacaEksportu(false);
+                        setPokazListeMiesiecyEksportu(true);
+                      }}
+                      onFocus={() => {
+                        setBladMiesiacaEksportu(false);
+                        setPokazListeMiesiecyEksportu(true);
+                      }}
+                      onBlur={() => window.setTimeout(() => setPokazListeMiesiecyEksportu(false), 150)}
+                      placeholder="Wybór miesiąca do PDF"
+                    />
+                    {pokazListeMiesiecyEksportu && przefiltrowaneMiesiaceEksportu.length ? (
+                      <div className="anim-dropdown absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-xl border border-emerald-500/20 bg-slate-900/95 p-1 shadow-2xl divide-y divide-emerald-500/25">
+                        {przefiltrowaneMiesiaceEksportu.map(([kod, nazwa]) => (
+                          <button
+                            key={kod}
+                            type="button"
+                            className="block w-full px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-emerald-500/10"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setQMiesiacEksportu(duzaLitera(nazwa));
+                              setMiesiacEksportu(kod);
+                              setBladMiesiacaEksportu(false);
+                              setPokazListeMiesiecyEksportu(false);
+                            }}
+                          >
+                            {duzaLitera(nazwa)}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="grid gap-2">
+                    {czyAdminGlowny && pokazListePlikowStorage ? (
+                      <div className="relative">
+                        <input
+                          className="pole h-11 w-full pr-3"
+                          value={qPlikStorage}
+                          onChange={(e) => {
+                            setQPlikStorage(e.target.value);
+                            setPokazListePlikowStorage(true);
+                          }}
+                          onFocus={() => setPokazListePlikowStorage(true)}
+                          placeholder="Wybierz plik Excel z chmury"
+                        />
+                        <div className="absolute z-30 mt-2 max-h-56 w-full overflow-auto rounded-2xl border border-emerald-500/20 bg-slate-950/95 shadow-2xl shadow-emerald-950/30">
+                          {ladowaniePlikowStorage ? (
+                            <p className="px-3 py-2 text-sm text-slate-400">Ładowanie plików z chmury...</p>
+                          ) : przefiltrowanePlikiStorageExcel.length ? (
+                            przefiltrowanePlikiStorageExcel.map((plik) => (
+                              <button
+                                key={plik.path}
+                                type="button"
+                                className="block w-full border-b border-emerald-500/15 px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-emerald-500/10"
+                                onMouseDown={async (e) => {
+                                  e.preventDefault();
+                                  try {
+                                    await podlaczPlikStorage(plik);
+                                  } catch (error) {
+                                    setKomunikatEksportu(error.message || "Nie udało się podpiąć pliku z chmury.");
+                                  }
+                                }}
+                              >
+                                {plik.name}
+                              </button>
+                            ))
+                          ) : (
+                            <p className="px-3 py-2 text-sm text-slate-400">Brak plików Excel w Supabase Storage.</p>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                    <p className="text-center text-xs text-slate-400">
+                      {podlaczonyPlikExcel?.name
+                        ? `Podpięty plik w chmurze: ${podlaczonyPlikExcel.name}`
+                        : automatycznieDopasowanyPlikStorage?.name
+                          ? `Dopasowany plik: ${automatycznieDopasowanyPlikStorage.name}`
+                          : "Brak podpiętego pliku Excel w chmurze."}
+                    </p>
+                    <button
+                      className="przycisk-glowny flex h-10 items-center justify-center px-3 py-1 text-center text-sm"
+                      type="button"
+                      onClick={pobierzPlikExcelDlaEksportu}
+                      disabled={!listaEksportu.length}
+                    >
+                      Pobierz
+                    </button>
+                    <button
+                      className="flex h-10 items-center justify-center rounded-2xl border border-cyan-400/25 bg-cyan-500/10 px-3 py-1 text-center text-sm font-semibold text-cyan-100 shadow-[0_10px_30px_rgba(34,211,238,0.08)] transition hover:border-cyan-300/40 hover:bg-cyan-500/16 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      type="button"
+                      onClick={async () => {
+                        setKomunikatEksportu("");
+                        if (!sprawdzPolaEksportu()) return;
+                        if (!sprawdzMiesiacEksportuPdf()) return;
+                        try {
+                          const wynik = await eksportujArkusz2DoPdf(
+                            listaEksportu,
+                            listaEksportu[0]?.rok || new Date().getFullYear(),
+                            nazwaEksportuFiltrow,
+                            miesiacEksportu,
+                            kontrahentEksportu || null,
+                            dataOdczytuEksportu,
+                            { wymusOknoZapisu: true }
+                          );
+                          ustawKomunikatPoZapisie(wynik);
+                        } catch (e) {
+                          setKomunikatEksportu(e.message);
+                        }
+                      }}
+                      disabled={!listaEksportu.length}
+                    >
+                      Pobierz PDF
+                    </button>
+                    <button
+                      className="przycisk-wtorny flex h-10 items-center justify-center px-3 py-1 text-center text-sm"
+                      type="button"
+                      onClick={zapiszZmianyDoPodlaczonegoPliku}
+                      disabled={!listaEksportu.length || !podlaczonyPlikExcel?.path}
+                    >
+                      Zapisz zmiany
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          <div className="order-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] xl:order-2">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Filtry widoku</p>
@@ -2953,244 +3192,6 @@ export default function OdczytyLicznikowPage() {
                 }}
               />
             </div>
-          </div>
-          <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-            <div className="mb-3 text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Eksport</p>
-              <p className="mt-2 text-sm leading-5 text-slate-500">Kliknij, aby wyeksportować dane.</p>
-            </div>
-            <div className="flex min-h-[68px] items-start justify-center">
-              <button
-                className="przycisk-glowny flex h-9 min-w-[180px] items-center justify-center px-5 py-1.5 text-center text-sm"
-                type="button"
-                onClick={() => {
-                  setKomunikatEksportu("");
-                  setPokazOknoEksportu(true);
-                }}
-              >
-                Eksportuj
-              </button>
-            </div>
-
-            {pokazOknoEksportu ? (
-              <div className="anim-dropdown absolute right-0 top-[calc(100%+12px)] z-30 w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-panel p-4 shadow-2xl">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Eksport</h3>
-                    <p className="text-sm text-slate-400">Ustaw parametry eksportu.</p>
-                  </div>
-                  <button className="przycisk-wtorny h-9 px-3 py-1 text-sm" type="button" onClick={() => setPokazOknoEksportu(false)}>
-                    Zamknij
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {komunikatEksportu ? <p className="text-sm text-emerald-300">{komunikatEksportu}</p> : null}
-
-                  <input
-                    className={`pole h-10 px-3 py-1.5 ${bladDatyEksportu ? "border-red-500/90 ring-1 ring-red-500/60" : ""}`}
-                    type="date"
-                    value={dataOdczytuEksportu}
-                    onChange={(e) => {
-                      setDataOdczytuEksportu(e.target.value);
-                      if (e.target.value) {
-                        setBladDatyEksportu(false);
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (!String(e.target.value || "").trim()) {
-                        setBladDatyEksportu(true);
-                      }
-                    }}
-                  />
-
-                  <div className="relative">
-                    <input
-                      className={`pole h-10 px-3 py-1.5 ${bladKontrahentaEksportu ? "border-red-500/90 ring-1 ring-red-500/60" : ""}`}
-                      value={qKontrahentEksportu}
-                      onChange={(e) => {
-                        setQKontrahentEksportu(e.target.value);
-                        setKontrahentEksportu(e.target.value);
-                        if (e.target.value.trim()) {
-                          setBladKontrahentaEksportu(false);
-                        }
-                        setPokazListeKontrahentowEksportu(true);
-                      }}
-                      onFocus={() => setPokazListeKontrahentowEksportu(true)}
-                      onBlur={() => window.setTimeout(() => setPokazListeKontrahentowEksportu(false), 150)}
-                      onBlurCapture={(e) => {
-                        if (!String(e.target.value || "").trim()) {
-                          setBladKontrahentaEksportu(true);
-                        }
-                      }}
-                      placeholder="Wybór kontrahenta"
-                    />
-                    {pokazListeKontrahentowEksportu && przefiltrowaniKontrahenciEksportu.length ? (
-                      <div className="anim-dropdown absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-xl border border-emerald-500/20 bg-slate-900/95 p-1 shadow-2xl divide-y divide-emerald-500/25">
-                        <button
-                          type="button"
-                          className="block w-full px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-emerald-500/10"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            setQKontrahentEksportu("Wszyscy kontrahenci");
-                            setKontrahentEksportu("");
-                            setBladKontrahentaEksportu(false);
-                            setPokazListeKontrahentowEksportu(false);
-                          }}
-                        >
-                          Wszyscy kontrahenci
-                        </button>
-                        {przefiltrowaniKontrahenciEksportu.map((nazwa) => (
-                          <button
-                            key={nazwa}
-                            type="button"
-                            className="block w-full px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-emerald-500/10"
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              setQKontrahentEksportu(nazwa);
-                              setKontrahentEksportu(nazwa);
-                              setBladKontrahentaEksportu(false);
-                              setPokazListeKontrahentowEksportu(false);
-                            }}
-                          >
-                            {nazwa}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="relative">
-                    <input
-                      className={`pole h-10 px-3 py-1.5 ${bladMiesiacaEksportu ? "!border-red-400/90 !ring-1 !ring-red-400/70 focus:!border-red-400" : ""}`}
-                      value={qMiesiacEksportu}
-                      onChange={(e) => {
-                        setQMiesiacEksportu(duzaLitera(e.target.value));
-                        setBladMiesiacaEksportu(false);
-                        setPokazListeMiesiecyEksportu(true);
-                      }}
-                      onFocus={() => {
-                        setBladMiesiacaEksportu(false);
-                        setPokazListeMiesiecyEksportu(true);
-                      }}
-                      onBlur={() => window.setTimeout(() => setPokazListeMiesiecyEksportu(false), 150)}
-                      placeholder="Wybór miesiąca do PDF"
-                    />
-                    {pokazListeMiesiecyEksportu && przefiltrowaneMiesiaceEksportu.length ? (
-                      <div className="anim-dropdown absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-xl border border-emerald-500/20 bg-slate-900/95 p-1 shadow-2xl divide-y divide-emerald-500/25">
-                        {przefiltrowaneMiesiaceEksportu.map(([kod, nazwa]) => (
-                          <button
-                            key={kod}
-                            type="button"
-                            className="block w-full px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-emerald-500/10"
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              setQMiesiacEksportu(duzaLitera(nazwa));
-                              setMiesiacEksportu(kod);
-                              setBladMiesiacaEksportu(false);
-                              setPokazListeMiesiecyEksportu(false);
-                            }}
-                          >
-                            {duzaLitera(nazwa)}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="grid gap-2">
-                    {czyAdminGlowny && pokazListePlikowStorage ? (
-                      <div className="relative">
-                        <input
-                          className="pole h-11 w-full pr-3"
-                          value={qPlikStorage}
-                          onChange={(e) => {
-                            setQPlikStorage(e.target.value);
-                            setPokazListePlikowStorage(true);
-                          }}
-                          onFocus={() => setPokazListePlikowStorage(true)}
-                          placeholder="Wybierz plik Excel z chmury"
-                        />
-                        <div className="absolute z-30 mt-2 max-h-56 w-full overflow-auto rounded-2xl border border-emerald-500/20 bg-slate-950/95 shadow-2xl shadow-emerald-950/30">
-                          {ladowaniePlikowStorage ? (
-                            <p className="px-3 py-2 text-sm text-slate-400">Ładowanie plików z chmury...</p>
-                          ) : przefiltrowanePlikiStorageExcel.length ? (
-                            przefiltrowanePlikiStorageExcel.map((plik) => (
-                              <button
-                                key={plik.path}
-                                type="button"
-                                className="block w-full border-b border-emerald-500/15 px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-emerald-500/10"
-                                onMouseDown={async (e) => {
-                                  e.preventDefault();
-                                  try {
-                                    await podlaczPlikStorage(plik);
-                                  } catch (error) {
-                                    setKomunikatEksportu(error.message || "Nie udało się podpiąć pliku z chmury.");
-                                  }
-                                }}
-                              >
-                                {plik.name}
-                              </button>
-                            ))
-                          ) : (
-                            <p className="px-3 py-2 text-sm text-slate-400">Brak plików Excel w Supabase Storage.</p>
-                          )}
-                        </div>
-                      </div>
-                    ) : null}
-                    <p className="text-center text-xs text-slate-400">
-                      {podlaczonyPlikExcel?.name
-                        ? `Podpięty plik w chmurze: ${podlaczonyPlikExcel.name}`
-                        : automatycznieDopasowanyPlikStorage?.name
-                          ? `Dopasowany plik: ${automatycznieDopasowanyPlikStorage.name}`
-                          : "Brak podpiętego pliku Excel w chmurze."}
-                    </p>
-                    <button
-                      className="przycisk-glowny flex h-10 items-center justify-center px-3 py-1 text-center text-sm"
-                      type="button"
-                      onClick={pobierzPlikExcelDlaEksportu}
-                      disabled={!listaEksportu.length}
-                    >
-                      Pobierz
-                    </button>
-                    <button
-                      className="flex h-10 items-center justify-center rounded-2xl border border-cyan-400/25 bg-cyan-500/10 px-3 py-1 text-center text-sm font-semibold text-cyan-100 shadow-[0_10px_30px_rgba(34,211,238,0.08)] transition hover:border-cyan-300/40 hover:bg-cyan-500/16 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                      type="button"
-                      onClick={async () => {
-                        setKomunikatEksportu("");
-                        if (!sprawdzPolaEksportu()) return;
-                        if (!sprawdzMiesiacEksportuPdf()) return;
-                        try {
-                          const wynik = await eksportujArkusz2DoPdf(
-                            listaEksportu,
-                            listaEksportu[0]?.rok || new Date().getFullYear(),
-                            nazwaEksportuFiltrow,
-                            miesiacEksportu,
-                            kontrahentEksportu || null,
-                            dataOdczytuEksportu,
-                            { wymusOknoZapisu: true }
-                          );
-                          ustawKomunikatPoZapisie(wynik);
-                        } catch (e) {
-                          setKomunikatEksportu(e.message);
-                        }
-                      }}
-                      disabled={!listaEksportu.length}
-                    >
-                      Pobierz PDF
-                    </button>
-                    <button
-                      className="przycisk-wtorny flex h-10 items-center justify-center px-3 py-1 text-center text-sm"
-                      type="button"
-                      onClick={zapiszZmianyDoPodlaczonegoPliku}
-                      disabled={!listaEksportu.length || !podlaczonyPlikExcel?.path}
-                    >
-                      Zapisz zmiany
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : null}
           </div>
         </div>
 

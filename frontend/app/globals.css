@@ -87,6 +87,17 @@ body {
   color: #8a98a5;
 }
 
+input[type="date"].pole {
+  min-width: 0;
+  max-width: 100%;
+  display: block;
+  -webkit-appearance: none;
+}
+
+input[type="date"].pole::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 /* Make native select dropdown options readable on Windows browsers */
 select.pole option {
   color: #f3f4f6;

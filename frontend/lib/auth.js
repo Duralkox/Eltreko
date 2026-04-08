@@ -66,13 +66,12 @@ export async function pobierzTokenAutoryzacji() {
   } = await supabase.auth.getSession();
 
   if (!session?.access_token) {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(KLUCZ);
-      localStorage.removeItem(KLUCZ_AKTYWNOSCI);
+    cacheTokenu = lokalnaSesja?.token || null;
+    cacheTokenuTs = cacheTokenu ? Date.now() : 0;
+    if (cacheTokenu) {
+      dotknijSesjeAktywnosc();
     }
-    cacheTokenu = null;
-    cacheTokenuTs = 0;
-    return null;
+    return cacheTokenu;
   }
 
   if (lokalnaSesja) {

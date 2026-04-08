@@ -497,7 +497,7 @@ export default function Protokoly() {
           <div>
             <EtykietaPola>Data przyjęcia zlecenia</EtykietaPola>
             <input
-              className="pole mt-1.5"
+                className="pole mt-1.5 min-w-0 w-full px-3 py-1.5"
               type="date"
               value={formularz.data}
               onChange={(e) => setFormularz({ ...formularz, data: e.target.value })}
@@ -668,7 +668,7 @@ export default function Protokoly() {
           <div className="md:col-span-2 md:max-w-xs">
             <EtykietaPola>Planowana data wykonania usługi</EtykietaPola>
             <input
-              className="pole mt-1.5"
+                className="pole mt-1.5 min-w-0 w-full px-3 py-1.5"
               type="date"
               value={formularz.planowana_data_naprawy}
               onChange={(e) => setFormularz({ ...formularz, planowana_data_naprawy: e.target.value })}
@@ -720,7 +720,7 @@ export default function Protokoly() {
           </div>
           <div>
             <EtykietaPola>Data</EtykietaPola>
-            <input className="pole mt-1.5" type="date" value={filtry.data} onChange={(e) => setFiltry({ ...filtry, data: e.target.value })} />
+            <input className="pole mt-1.5 min-w-0 w-full px-3 py-1.5" type="date" value={filtry.data} onChange={(e) => setFiltry({ ...filtry, data: e.target.value })} />
           </div>
           <div>
             <EtykietaPola>Technik</EtykietaPola>
