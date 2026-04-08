@@ -32,6 +32,7 @@ const IDB_KLUCZ_EXCEL = "podlaczony-excel";
 const IDB_STORE_KOLEJKA = "kolejka-odczytow";
 const IDB_STORE_CACHE = "cache-odczytow";
 const IDB_KLUCZ_CACHE_LISTA = "lista";
+const IDB_KLUCZ_CACHE_KLIENCI = "klienci";
 
 function pustyFormularz() {
   return {
@@ -111,6 +112,50 @@ function listaPoZapisieRekordu(lista = [], rekord) {
   const next = [...baza];
   next[indeks] = rekord;
   return next;
+}
+
+function listaPoUsunieciuRekordu(lista = [], rekordId) {
+  const baza = Array.isArray(lista) ? lista : [];
+  return baza.filter((item) => String(item.id) !== String(rekordId));
+}
+
+function czyLokalneIdRekordu(id) {
+  return String(id || "").startsWith("lokalne-");
+}
+
+function stworzLokalnyIdRekordu() {
+  return `lokalne-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function zbudujLokalnyRekord(payload = {}, opcje = {}) {
+  const istniejacy = opcje.istniejacy || {};
+  const klienci = Array.isArray(opcje.klienci) ? opcje.klienci : [];
+  const budynek = klienci.find((item) => String(item.id || "") === String(payload.kontrahent_id || istniejacy.kontrahent_id || ""));
+  return {
+    id: opcje.id || istniejacy.id || "",
+    lp: payload.lp ?? istniejacy.lp ?? "",
+    typ_licznika: payload.typ_licznika ?? istniejacy.typ_licznika ?? "",
+    rodzaj_licznika: payload.rodzaj_licznika ?? istniejacy.rodzaj_licznika ?? "",
+    numer_licznika: payload.numer_licznika ?? istniejacy.numer_licznika ?? "",
+    kontrahent_id: payload.kontrahent_id ?? istniejacy.kontrahent_id ?? "",
+    kontrahent_nazwa: opcje.budynekNazwa || budynek?.nazwa || istniejacy.kontrahent_nazwa || "",
+    import_nazwa: payload.import_nazwa ?? opcje.importNazwa ?? istniejacy.import_nazwa ?? "",
+    rok: payload.rok ?? istniejacy.rok ?? new Date().getFullYear(),
+    m01: payload.m01 ?? istniejacy.m01 ?? "",
+    m02: payload.m02 ?? istniejacy.m02 ?? "",
+    m03: payload.m03 ?? istniejacy.m03 ?? "",
+    m04: payload.m04 ?? istniejacy.m04 ?? "",
+    m05: payload.m05 ?? istniejacy.m05 ?? "",
+    m06: payload.m06 ?? istniejacy.m06 ?? "",
+    m07: payload.m07 ?? istniejacy.m07 ?? "",
+    m08: payload.m08 ?? istniejacy.m08 ?? "",
+    m09: payload.m09 ?? istniejacy.m09 ?? "",
+    m10: payload.m10 ?? istniejacy.m10 ?? "",
+    m11: payload.m11 ?? istniejacy.m11 ?? "",
+    m12: payload.m12 ?? istniejacy.m12 ?? "",
+    _lokalne: true,
+    _lokalneNowe: Boolean(opcje.nowy || istniejacy._lokalneNowe)
+  };
 }
 
 function otworzBazePlikow() {
@@ -230,6 +275,30 @@ async function zapiszCacheOdczytow(lista) {
     const request = store.put(lista, IDB_KLUCZ_CACHE_LISTA);
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error || new Error("Nie udało się zapisać cache odczytów."));
+  });
+}
+
+async function pobierzCacheKlientow() {
+  const db = await otworzBazePlikow();
+  if (!db) return [];
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE_CACHE, "readonly");
+    const store = tx.objectStore(IDB_STORE_CACHE);
+    const request = store.get(IDB_KLUCZ_CACHE_KLIENCI);
+    request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result : []);
+    request.onerror = () => reject(request.error || new Error("Nie udało się odczytać cache kontrahentów."));
+  });
+}
+
+async function zapiszCacheKlientow(lista) {
+  const db = await otworzBazePlikow();
+  if (!db) return;
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE_CACHE, "readwrite");
+    const store = tx.objectStore(IDB_STORE_CACHE);
+    const request = store.put(lista, IDB_KLUCZ_CACHE_KLIENCI);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error || new Error("Nie udało się zapisać cache kontrahentów."));
   });
 }
 
@@ -544,15 +613,16 @@ function zastosujKolejkeDoListy(listaBazowa, kolejka) {
   const wynik = [...listaBazowa];
 
   for (const wpis of kolejka) {
-    if (wpis.typ === "create" && wpis.lokalnyRekord) {
+    if ((wpis.typ === "create" || wpis.typ === "create-record") && wpis.lokalnyRekord) {
       const istnieje = wynik.some((item) => String(item.id) === String(wpis.lokalnyRekord.id));
       if (!istnieje) {
         wynik.push(wpis.lokalnyRekord);
       }
     }
 
-    if ((wpis.typ === "update" || wpis.typ === "update-month") && wpis.rekordId) {
-      const index = wynik.findIndex((item) => String(item.id) === String(wpis.rekordId));
+    const rekordId = wpis.rekordId || wpis.localId;
+    if ((wpis.typ === "update" || wpis.typ === "update-record" || wpis.typ === "update-month") && rekordId) {
+      const index = wynik.findIndex((item) => String(item.id) === String(rekordId));
       if (index >= 0 && wpis.lokalnyRekord) {
         wynik[index] = { ...wynik[index], ...wpis.lokalnyRekord, _lokalne: true, _kolejkaId: wpis.id };
       }
@@ -1410,12 +1480,49 @@ export default function OdczytyLicznikowPage() {
     normalizujTekst(sesja?.uzytkownik?.rola) === "administrator";
   const kontrahentDostepuOgraniczonego = DOMYSLNY_KONTRAHENT;
 
+  const zapiszLokalnieNowyLubEdytowanyRekord = useCallback(async (payload, opcje = {}) => {
+    const istniejacy = opcje.istniejacy || null;
+    const localId = opcje.localId || (czyLokalneIdRekordu(istniejacy?.id) ? istniejacy.id : stworzLokalnyIdRekordu());
+    const lokalnyRekord = zbudujLokalnyRekord(payload, {
+      id: localId,
+      nowy: opcje.nowy ?? (!istniejacy || czyLokalneIdRekordu(istniejacy?.id)),
+      istniejacy,
+      klienci: kontrahenci,
+      budynekNazwa: opcje.budynekNazwa || istniejacy?.kontrahent_nazwa || "",
+      importNazwa: payload.import_nazwa
+    });
+
+    if (opcje.nowy || czyLokalneIdRekordu(localId)) {
+      await zapiszDoKolejkiOdczytow({
+        id: `create-record-${localId}`,
+        typ: "create-record",
+        localId,
+        payload,
+        lokalnyRekord,
+        utworzono: opcje.utworzono || Date.now()
+      });
+    } else {
+      await zapiszDoKolejkiOdczytow({
+        id: `update-record-${istniejacy.id}`,
+        typ: "update-record",
+        rekordId: istniejacy.id,
+        payload,
+        lokalnyRekord,
+        utworzono: Date.now()
+      });
+    }
+
+    ustawLubDodajOdczyt(lokalnyRekord);
+    return lokalnyRekord;
+  }, [kontrahenci]);
+
   async function odswiez() {
     setBlad("");
-    const [o, k, cacheLista, kolejka] = await Promise.allSettled([
+    const [o, k, cacheLista, cacheKlienci, kolejka] = await Promise.allSettled([
       zapytanieApi("/odczyty-licznikow"),
       zapytanieApi("/klienci"),
       pobierzCacheOdczytow(),
+      pobierzCacheKlientow(),
       pobierzKolejkeOdczytow()
     ]);
 
@@ -1436,9 +1543,16 @@ export default function OdczytyLicznikowPage() {
     if (k.status === "fulfilled") {
       const listaKlientow = Array.isArray(k.value) ? k.value : [];
       setKontrahenci(listaKlientow.filter((x) => x && x.id && x.nazwa));
+      zapiszCacheKlientow(listaKlientow.filter((x) => x && x.id && x.nazwa)).catch(() => {});
     } else {
-      setKontrahenci([]);
-      setBlad("Nie udało się pobrać kontrahentów z tabeli klienci.");
+      const klienciZCache = cacheKlienci.status === "fulfilled" ? cacheKlienci.value : [];
+      if (klienciZCache.length) {
+        setKontrahenci(klienciZCache.filter((x) => x && x.id && x.nazwa));
+        setKomunikatLokalny("Brak połączenia. Kontrahenci i odczyty zostały wczytane z pamięci urządzenia.");
+      } else {
+        setKontrahenci([]);
+        setBlad("Nie udało się pobrać kontrahentów z tabeli klienci.");
+      }
     }
   }
 
@@ -1451,9 +1565,18 @@ export default function OdczytyLicznikowPage() {
 
     let zsynchronizowane = 0;
 
-    for (const wpis of kolejka) {
+    const uporzadkowanaKolejka = [...kolejka].sort((a, b) => Number(a.utworzono || 0) - Number(b.utworzono || 0));
+
+    for (const wpis of uporzadkowanaKolejka) {
       try {
-        if (wpis.typ === "update-month" && wpis.rekordId && wpis.payload) {
+        if (wpis.typ === "create-record" && wpis.payload) {
+          await zapytanieApi("/odczyty-licznikow", {
+            method: "POST",
+            body: JSON.stringify(wpis.payload)
+          });
+          await usunZKolejkiOdczytow(wpis.id);
+          zsynchronizowane += 1;
+        } else if ((wpis.typ === "update-month" || wpis.typ === "update-record") && wpis.rekordId && wpis.payload) {
           await zapytanieApi(`/odczyty-licznikow/${wpis.rekordId}`, {
             method: "PUT",
             body: JSON.stringify(wpis.payload)
@@ -2108,6 +2231,7 @@ export default function OdczytyLicznikowPage() {
   async function zapisz(e) {
     e.preventDefault();
     setBlad("");
+    setKomunikatLokalny("");
 
     try {
       if (edytowany) {
@@ -2139,6 +2263,32 @@ export default function OdczytyLicznikowPage() {
         }
       }
     } catch (e2) {
+      if (czyBladPolaczenia(e2)) {
+        const budynekNazwa = qBudynek || lista.find((item) => String(item.id) === String(edytowany))?.kontrahent_nazwa || "";
+        if (edytowany) {
+          const istniejacy = lista.find((item) => String(item.id) === String(edytowany)) || null;
+          await zapiszLokalnieNowyLubEdytowanyRekord(formularz, {
+            istniejacy,
+            localId: istniejacy?.id,
+            nowy: czyLokalneIdRekordu(istniejacy?.id),
+            budynekNazwa
+          });
+        } else {
+          await zapiszLokalnieNowyLubEdytowanyRekord(formularz, {
+            nowy: true,
+            budynekNazwa
+          });
+        }
+
+        setKomunikatLokalny("Brak połączenia. Zapisano zmiany lokalnie. System wyśle je automatycznie po powrocie internetu.");
+        const kolejkaPoZapisie = await pobierzKolejkeOdczytow();
+        setLiczbaLokalnychZapisow(kolejkaPoZapisie.length);
+        setEdytowany(null);
+        setEdytowanyMiesiacId(null);
+        setFormularz(pustyFormularz());
+        setQBudynek("");
+        return;
+      }
       setBlad(e2.message);
     }
   }
@@ -2233,9 +2383,27 @@ export default function OdczytyLicznikowPage() {
       przywrocScrollPoZapisie(scrollPrzedZapisem);
     } catch (e) {
       if (czyBladPolaczenia(e)) {
+        if (czyLokalneIdRekordu(w.id)) {
+          const lokalnyRekord = await zapiszLokalnieNowyLubEdytowanyRekord(payload, {
+            istniejacy: w,
+            localId: w.id,
+            nowy: true,
+            utworzono: Date.now()
+          });
+          setEdytowanyMiesiacId(null);
+          setWartoscEdytowanegoMiesiaca("");
+          setKomunikatLokalny("Brak połączenia. Zmiana została zapisana lokalnie i zsynchronizuje się po powrocie internetu.");
+          const kolejkaPoZapisie = await pobierzKolejkeOdczytow();
+          setLiczbaLokalnychZapisow(kolejkaPoZapisie.length);
+          zapiszCacheOdczytow(
+            lista.map((item) => (String(item.id) === String(w.id) ? lokalnyRekord : item))
+          ).catch(() => {});
+          przywrocScrollPoZapisie(scrollPrzedZapisem);
+          return;
+        }
         const lokalnyRekord = { ...w, ...payload, _lokalne: true };
         const wpisKolejki = {
-          id: stworzLokalnyId(),
+          id: `update-month-${w.id}-${miesiacWidoku}`,
           typ: "update-month",
           rekordId: w.id,
           payload,
@@ -2247,7 +2415,8 @@ export default function OdczytyLicznikowPage() {
         setEdytowanyMiesiacId(null);
         setWartoscEdytowanegoMiesiaca("");
         setKomunikatLokalny("Brak połączenia. Zmiana została zapisana lokalnie i zsynchronizuje się po powrocie internetu.");
-        setLiczbaLokalnychZapisow((prev) => prev + 1);
+        const kolejkaPoZapisie = await pobierzKolejkeOdczytow();
+        setLiczbaLokalnychZapisow(kolejkaPoZapisie.length);
         zapiszCacheOdczytow(
           lista.map((item) => (String(item.id) === String(w.id) ? lokalnyRekord : item))
         ).catch(() => {});
@@ -2256,7 +2425,7 @@ export default function OdczytyLicznikowPage() {
       }
       setBlad(e.message);
     }
-  }, [formularz.import_nazwa, lista, miesiacWidoku, wartoscEdytowanegoMiesiaca, zapiszZmianyDoChmuryPoRekordzie]);
+  }, [lista, miesiacWidoku, wartoscEdytowanegoMiesiaca, zapiszLokalnieNowyLubEdytowanyRekord, zapiszZmianyDoChmuryPoRekordzie]);
 
   const zapiszKomorke = useCallback(async (w, pole) => {
     const kluczKomorki = `${w.id}:${pole}`;
@@ -2295,10 +2464,27 @@ export default function OdczytyLicznikowPage() {
       anulujEdycjeKomorki();
       przywrocScrollPoZapisie(scrollPrzedZapisem);
     } catch (e) {
-      if (pole.startsWith("m") && czyBladPolaczenia(e)) {
+      if (czyBladPolaczenia(e)) {
+        if (czyLokalneIdRekordu(w.id)) {
+          const lokalnyRekord = await zapiszLokalnieNowyLubEdytowanyRekord(payload, {
+            istniejacy: w,
+            localId: w.id,
+            nowy: true
+          });
+          anulujEdycjeKomorki();
+          setKomunikatLokalny("Brak połączenia. Zmiana została zapisana lokalnie i zsynchronizuje się po powrocie internetu.");
+          const kolejkaPoZapisie = await pobierzKolejkeOdczytow();
+          setLiczbaLokalnychZapisow(kolejkaPoZapisie.length);
+          zapiszCacheOdczytow(
+            lista.map((item) => (String(item.id) === String(w.id) ? lokalnyRekord : item))
+          ).catch(() => {});
+          przywrocScrollPoZapisie(scrollPrzedZapisem);
+          return;
+        }
+        if (pole.startsWith("m")) {
         const lokalnyRekord = { ...w, ...payload, _lokalne: true };
         const wpisKolejki = {
-          id: stworzLokalnyId(),
+          id: `update-month-${w.id}-${pole}`,
           typ: "update-month",
           rekordId: w.id,
           payload,
@@ -2309,7 +2495,29 @@ export default function OdczytyLicznikowPage() {
         ustawLubDodajOdczyt(lokalnyRekord);
         anulujEdycjeKomorki();
         setKomunikatLokalny("Brak połączenia. Zmiana została zapisana lokalnie i zsynchronizuje się po powrocie internetu.");
-        setLiczbaLokalnychZapisow((prev) => prev + 1);
+        const kolejkaPoZapisie = await pobierzKolejkeOdczytow();
+        setLiczbaLokalnychZapisow(kolejkaPoZapisie.length);
+        zapiszCacheOdczytow(
+          lista.map((item) => (String(item.id) === String(w.id) ? lokalnyRekord : item))
+        ).catch(() => {});
+        przywrocScrollPoZapisie(scrollPrzedZapisem);
+        return;
+        }
+
+        const lokalnyRekord = { ...w, ...payload, _lokalne: true };
+        await zapiszDoKolejkiOdczytow({
+          id: `update-record-${w.id}`,
+          typ: "update-record",
+          rekordId: w.id,
+          payload,
+          lokalnyRekord,
+          utworzono: Date.now()
+        });
+        ustawLubDodajOdczyt(lokalnyRekord);
+        anulujEdycjeKomorki();
+        setKomunikatLokalny("Brak połączenia. Zmiana została zapisana lokalnie i zsynchronizuje się po powrocie internetu.");
+        const kolejkaPoZapisie = await pobierzKolejkeOdczytow();
+        setLiczbaLokalnychZapisow(kolejkaPoZapisie.length);
         zapiszCacheOdczytow(
           lista.map((item) => (String(item.id) === String(w.id) ? lokalnyRekord : item))
         ).catch(() => {});
@@ -2319,7 +2527,7 @@ export default function OdczytyLicznikowPage() {
       setBlad(e.message);
       setZapisywanaKomorka("");
     }
-  }, [anulujEdycjeKomorki, edytowanaKomorka, formularz.import_nazwa, lista, wartoscEdytowanejKomorki, zapiszZmianyDoChmuryPoRekordzie]);
+  }, [anulujEdycjeKomorki, edytowanaKomorka, formularz.import_nazwa, lista, wartoscEdytowanejKomorki, zapiszLokalnieNowyLubEdytowanyRekord, zapiszZmianyDoChmuryPoRekordzie]);
 
   const usun = useCallback(async (id) => {
     if (!window.confirm("Usunąć odczyt?")) return;

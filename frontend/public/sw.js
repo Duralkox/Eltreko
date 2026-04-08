@@ -1,5 +1,16 @@
-const CACHE_NAME = "eltrekoapp-v3";
-const PRECACHE_URLS = ["/", "/logowanie", "/manifest.json", "/ikona-192.png", "/ikona-512.png", "/icon.png"];
+const CACHE_NAME = "eltrekoapp-v4";
+const PRECACHE_URLS = [
+  "/",
+  "/start",
+  "/logowanie",
+  "/odczyty-licznikow",
+  "/protokoly",
+  "/aplikacja",
+  "/manifest.json",
+  "/ikona-192.png",
+  "/ikona-512.png",
+  "/icon.png"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)));
@@ -35,7 +46,11 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/logowanie")))
+        .catch(() =>
+          caches.match(event.request).then(
+            (cached) => cached || caches.match("/start") || caches.match("/") || caches.match("/logowanie")
+          )
+        )
     );
     return;
   }
