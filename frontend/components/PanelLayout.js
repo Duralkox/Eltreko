@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import Sidebar from "./Sidebar";
-import { pobierzSesje } from "../lib/auth";
+import { czySesjaWygasla, dotknijSesjeAktywnosc, pobierzSesje, wyczyscSesje } from "../lib/auth";
 
 export default function PanelLayout({ children }) {
   const router = useRouter();
@@ -29,6 +29,34 @@ export default function PanelLayout({ children }) {
   useEffect(() => {
     setMenuOtwarte(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!gotowe || typeof window === "undefined") return undefined;
+
+    const odswiezAktywnosc = () => {
+      dotknijSesjeAktywnosc();
+    };
+
+    const sprawdzWygasniecie = () => {
+      if (!czySesjaWygasla()) return;
+      wyczyscSesje();
+      setMenuOtwarte(false);
+      router.push("/logowanie");
+    };
+
+    const zdarzenia = ["pointerdown", "keydown", "touchstart", "focus"];
+    zdarzenia.forEach((nazwa) => window.addEventListener(nazwa, odswiezAktywnosc, { passive: true }));
+    document.addEventListener("visibilitychange", odswiezAktywnosc);
+
+    const interwal = window.setInterval(sprawdzWygasniecie, 30000);
+    odswiezAktywnosc();
+
+    return () => {
+      zdarzenia.forEach((nazwa) => window.removeEventListener(nazwa, odswiezAktywnosc));
+      document.removeEventListener("visibilitychange", odswiezAktywnosc);
+      window.clearInterval(interwal);
+    };
+  }, [gotowe, router]);
 
   if (!gotowe) return null;
 
@@ -65,7 +93,7 @@ export default function PanelLayout({ children }) {
               className="min-h-full"
               onNavigate={() => setMenuOtwarte(false)}
               pokazNaglowek={false}
-              pokazStopke={false}
+              pokazStopke
             />
           </div>
         </div>
