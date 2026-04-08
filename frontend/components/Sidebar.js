@@ -23,7 +23,7 @@ import { pobierzSesje, wyczyscSesje } from "../lib/auth";
 import { zapytanieApi } from "../lib/api";
 
 const MENU_GLOWNE = [
-  { href: "/panel-glowny", etykieta: "Panel główny", ikona: HomeIcon },
+  { href: "/start", etykieta: "Start", ikona: HomeIcon },
   { href: "/protokoly", etykieta: "Protokoły", ikona: ClipboardDocumentListIcon },
   { href: "/odczyty-licznikow", etykieta: "Odczyty liczników", ikona: CalculatorIcon },
   { href: "/kontrahenci", etykieta: "Kontrahenci", ikona: BuildingOffice2Icon },

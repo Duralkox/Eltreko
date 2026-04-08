@@ -20,7 +20,7 @@ export default function PanelLayout({ children }) {
       return;
     }
     if (pathname === "/") {
-      router.push("/panel-glowny");
+      router.push("/start");
       return;
     }
     setGotowe(true);

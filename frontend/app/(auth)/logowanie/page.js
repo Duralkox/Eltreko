@@ -106,7 +106,7 @@ export default function StronaLogowania() {
         uzytkownik: sesjaApi.uzytkownik
       });
 
-      router.push("/panel-glowny");
+      router.push("/start");
     } catch (error) {
       setBlad(error.message);
     } finally {
