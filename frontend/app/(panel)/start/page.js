@@ -59,9 +59,8 @@ export default function StartPage() {
             <div className="hidden rounded-[1.45rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] lg:block">
               <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">O systemie</p>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300/88">
-                EltrekoAPP łączy w jednym miejscu pracę na protokołach, odczytach liczników i zgłoszeniach.
-                Ten ekran startowy ma dawać szybkie wejście do najważniejszych modułów, a sama aplikacja
-                jest przygotowana tak, żeby wygodnie działała zarówno na komputerze, jak i w wersji mobilnej.
+                EltrekoAPP łączy protokoły, odczyty liczników i zgłoszenia w jednym miejscu, z szybkim
+                wejściem do najważniejszych modułów.
               </p>
             </div>
           </div>
