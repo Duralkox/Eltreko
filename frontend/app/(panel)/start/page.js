@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   ClipboardDocumentListIcon,
   CalculatorIcon,
-  DevicePhoneMobileIcon,
   ArrowRightIcon
 } from "@heroicons/react/24/outline";
 
@@ -21,9 +20,9 @@ const KAFLE = [
     ikona: CalculatorIcon
   },
   {
-    href: "/aplikacja",
-    etykieta: "Aplikacja",
-    ikona: DevicePhoneMobileIcon
+    href: "/panel-glowny",
+    etykieta: "Zgłoszenia",
+    ikona: ClipboardDocumentListIcon
   }
 ];
 

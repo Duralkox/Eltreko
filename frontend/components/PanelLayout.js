@@ -79,6 +79,7 @@ export default function PanelLayout({ children }) {
           {menuOtwarte ? <XMarkIcon className="h-5 w-5" /> : <Bars3Icon className="h-5 w-5" />}
         </button>
       </div>
+      <div className="mx-auto mb-4 h-px w-28 bg-gradient-to-r from-transparent via-white/18 to-transparent md:hidden" />
 
       {menuOtwarte ? (
         <div className="fixed inset-0 z-40 md:hidden">

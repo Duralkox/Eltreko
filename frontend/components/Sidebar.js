@@ -28,14 +28,14 @@ const MENU_GLOWNE = [
   { href: "/protokoly", etykieta: "Protokoły", ikona: ClipboardDocumentListIcon },
   { href: "/odczyty-licznikow", etykieta: "Odczyty liczników", ikona: CalculatorIcon },
   { href: "/kontrahenci", etykieta: "Kontrahenci", ikona: BuildingOffice2Icon },
-  { href: "/szablony-przegladow", etykieta: "Szablony przeglądów", ikona: DocumentDuplicateIcon },
   { href: "/aplikacja", etykieta: "Aplikacja", ikona: DevicePhoneMobileIcon }
 ];
 
 const MENU_ELEMENTY = [
   { href: "/kategorie-usterek", etykieta: "Kategorie usterek", ikona: WrenchScrewdriverIcon },
   { href: "/czynnosci-serwisowe", etykieta: "Czynności serwisowe", ikona: ListBulletIcon },
-  { href: "/definicja-czesci", etykieta: "Definicja części", ikona: CubeIcon }
+  { href: "/definicja-czesci", etykieta: "Definicja części", ikona: CubeIcon },
+  { href: "/szablony-przegladow", etykieta: "Szablony przeglądów", ikona: DocumentDuplicateIcon }
 ];
 
 const MENU_PPOZ = [
@@ -126,8 +126,8 @@ export default function Sidebar({ className = "", onNavigate = null, pokazNaglow
   const menuGlowne = czyAdminGlowny
     ? MENU_GLOWNE
     : MENU_GLOWNE.filter((item) => item.href !== "/kontrahenci");
-  const menuGlownePrzedElementami = menuGlowne.filter((item) => !["/szablony-przegladow", "/aplikacja"].includes(item.href));
-  const menuGlownePoElementach = menuGlowne.filter((item) => ["/szablony-przegladow", "/aplikacja"].includes(item.href));
+  const menuGlownePrzedElementami = menuGlowne.filter((item) => item.href !== "/aplikacja");
+  const menuGlownePoElementach = menuGlowne.filter((item) => item.href === "/aplikacja");
   const nazwaUzytkownika =
     emailUzytkownika === "dominik@eltreko.pl"
       ? "Dominik Administrator"
