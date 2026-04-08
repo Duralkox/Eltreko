@@ -24,6 +24,7 @@ import { zapytanieApi } from "../lib/api";
 
 const MENU_GLOWNE = [
   { href: "/start", etykieta: "Start", ikona: HomeIcon },
+  { href: "/panel-glowny", etykieta: "Zgłoszenia", ikona: ClipboardDocumentListIcon },
   { href: "/protokoly", etykieta: "Protokoły", ikona: ClipboardDocumentListIcon },
   { href: "/odczyty-licznikow", etykieta: "Odczyty liczników", ikona: CalculatorIcon },
   { href: "/kontrahenci", etykieta: "Kontrahenci", ikona: BuildingOffice2Icon },

@@ -1,72 +1,90 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import {
   ClipboardDocumentListIcon,
   CalculatorIcon,
   DevicePhoneMobileIcon,
-  ShieldCheckIcon,
-  BoltIcon,
+  SparklesIcon,
   ArrowRightIcon
 } from "@heroicons/react/24/outline";
 
-const SKROTY = [
+const KAFLE = [
   {
     href: "/protokoly",
     etykieta: "Protokoły",
-    opis: "Szybkie tworzenie dokumentów, PDF i obsługa zleceń w terenie.",
+    opis: "Dokumenty serwisowe, szybka edycja i eksport PDF.",
     ikona: ClipboardDocumentListIcon
   },
   {
     href: "/odczyty-licznikow",
     etykieta: "Odczyty liczników",
-    opis: "Wygodne wpisywanie miesięcy, eksport i zapis zmian z telefonu.",
+    opis: "Wygodne wpisywanie miesięcy i zapis zmian z telefonu.",
     ikona: CalculatorIcon
   },
   {
     href: "/aplikacja",
     etykieta: "Aplikacja",
-    opis: "Instalacja na telefonie i szybki dostęp do mobilnej wersji systemu.",
+    opis: "Instalacja na telefonie i szybki dostęp do mobilnej wersji.",
     ikona: DevicePhoneMobileIcon
   }
 ];
 
-const ZALETY = [
-  "Mobilne protokoły i dokumenty PDF w jednym miejscu.",
-  "Odczyty liczników przygotowane pod wygodne wpisywanie na telefonie.",
-  "Jedno konto, jedna aplikacja, szybki dostęp do wszystkich modułów."
+const SKROTY = [
+  "Szybki dostęp do najważniejszych modułów.",
+  "Układ przygotowany pod pracę z telefonu.",
+  "Jedno miejsce dla dokumentów i odczytów."
 ];
+
+function AbstrakcyjnaGrafika() {
+  return (
+    <div className="relative mx-auto aspect-[1.05/1] w-full max-w-[360px] overflow-hidden rounded-[2rem] bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))] shadow-[0_24px_60px_rgba(5,12,18,0.18)]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(90,208,132,0.18),transparent_30%),radial-gradient(circle_at_78%_28%,rgba(127,240,164,0.12),transparent_26%),radial-gradient(circle_at_70%_80%,rgba(117,226,203,0.12),transparent_22%)]" />
+      <div className="absolute left-[12%] top-[18%] h-[24%] w-[27%] rounded-[1.65rem] bg-[linear-gradient(180deg,rgba(88,205,129,0.28),rgba(61,140,93,0.16))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" />
+      <div className="absolute right-[11%] top-[16%] h-[18%] w-[34%] rounded-[1.5rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))]" />
+      <div className="absolute left-[18%] top-[49%] h-[14%] w-[56%] rounded-[1.3rem] bg-[linear-gradient(90deg,rgba(86,198,127,0.3),rgba(255,255,255,0.03))]" />
+      <div className="absolute right-[14%] bottom-[14%] h-[22%] w-[26%] rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.02))]" />
+      <div className="absolute left-[11%] bottom-[15%] h-[11%] w-[32%] rounded-full bg-[linear-gradient(90deg,rgba(120,240,170,0.22),transparent)] blur-[1px]" />
+      <div className="absolute inset-x-[12%] top-[34%] h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
+      <div className="absolute inset-y-[12%] left-[44%] w-px bg-gradient-to-b from-transparent via-white/8 to-transparent" />
+      <div className="absolute left-[16%] top-[60%] flex items-center gap-3 rounded-full bg-black/12 px-4 py-2 text-sm text-slate-200 backdrop-blur-sm">
+        <SparklesIcon className="h-4 w-4 text-emerald-200" />
+        Mobilny panel
+      </div>
+    </div>
+  );
+}
 
 export default function StartPage() {
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-[linear-gradient(135deg,rgba(36,49,60,0.98),rgba(26,38,48,0.94))] p-5 shadow-[0_24px_70px_rgba(5,12,18,0.22)] sm:p-7">
-        <div className="pointer-events-none absolute -left-10 top-10 h-40 w-40 rounded-full bg-emerald-400/10 blur-3xl" />
-        <div className="pointer-events-none absolute right-[-30px] top-[-10px] h-52 w-52 rounded-full bg-cyan-300/7 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-[-40px] right-10 h-36 w-36 rounded-full bg-emerald-300/10 blur-3xl" />
+      <section className="relative overflow-hidden rounded-[2rem] bg-[linear-gradient(145deg,rgba(34,47,59,0.98),rgba(27,39,49,0.95))] px-5 py-6 shadow-[0_26px_70px_rgba(6,13,19,0.18)] sm:px-7 sm:py-7">
+        <div className="pointer-events-none absolute -left-16 top-0 h-48 w-48 rounded-full bg-emerald-400/7 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[-80px] right-[-20px] h-56 w-56 rounded-full bg-cyan-300/6 blur-3xl" />
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_380px]">
-          <div className="anim-panel">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-emerald-300/90">
-              EltrekoAPP
-            </p>
-            <h1 className="mt-4 max-w-[10ch] text-4xl font-semibold leading-[1.02] tracking-tight text-slate-50 sm:text-5xl">
-              Start pracy w terenie
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300/88 sm:text-lg">
-              Mobilny panel dla dokumentów serwisowych, protokołów i odczytów liczników.
-              Wszystko pod ręką, w jednym miejscu, gotowe do pracy z telefonu.
-            </p>
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_360px] xl:items-center">
+          <div className="space-y-6 anim-panel">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-emerald-300/85">
+                EltrekoAPP
+              </p>
+              <h1 className="mt-4 max-w-[12ch] text-4xl font-semibold leading-[1.04] tracking-tight text-slate-50 sm:text-5xl">
+                Mobilny panel serwisowy
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300/88 sm:text-lg">
+                Szybki dostęp do protokołów, odczytów liczników i dokumentów technicznych.
+                Bez zbędnych ekranów, od razu pod pracę w aplikacji.
+              </p>
+            </div>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              {SKROTY.map(({ href, etykieta, opis, ikona: Ikona }) => (
+            <div className="grid gap-3 sm:grid-cols-3">
+              {KAFLE.map(({ href, etykieta, opis, ikona: Ikona }) => (
                 <Link
                   key={href}
                   href={href}
-                  className="group rounded-[1.4rem] border border-white/[0.07] bg-white/[0.04] p-4 transition hover:border-emerald-300/18 hover:bg-white/[0.06]"
+                  className="group rounded-[1.55rem] bg-white/[0.035] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition hover:bg-white/[0.055]"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-400/18 bg-emerald-500/12 text-emerald-200">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-[1.1rem] bg-emerald-500/12 text-emerald-200">
                     <Ikona className="h-5 w-5" />
                   </div>
                   <div className="mt-4 flex items-center justify-between gap-3">
@@ -77,40 +95,21 @@ export default function StartPage() {
                 </Link>
               ))}
             </div>
-          </div>
 
-          <div className="anim-panel rounded-[1.8rem] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-5">
-            <div className="relative mx-auto flex aspect-square max-w-[260px] items-center justify-center overflow-hidden rounded-[2rem] border border-white/[0.07] bg-[radial-gradient(circle_at_top,rgba(125,240,164,0.16),rgba(255,255,255,0.02)_52%,rgba(255,255,255,0.015))] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_50px_rgba(0,0,0,0.18)]">
-              <div className="absolute inset-5 rounded-[1.5rem] border border-emerald-300/10 bg-black/8" />
-              <div className="absolute left-6 top-7 h-16 w-16 rounded-2xl border border-emerald-300/12 bg-emerald-500/10 blur-[1px]" />
-              <div className="absolute bottom-7 right-7 h-20 w-20 rounded-[1.7rem] border border-cyan-200/10 bg-cyan-300/8 blur-[1px]" />
-              <Image
-                src="/logo.png"
-                alt="Eltreko"
-                width={713}
-                height={189}
-                className="relative z-10 h-auto w-[74%] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.22)]"
-              />
-            </div>
-
-            <div className="mt-5 space-y-3">
-              {ZALETY.map((tekst, index) => (
+            <div className="grid gap-2 sm:grid-cols-3">
+              {SKROTY.map((tekst) => (
                 <div
                   key={tekst}
-                  className="flex items-start gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3 anim-sekcja"
-                  style={{ animationDelay: `${index * 90}ms` }}
+                  className="rounded-[1.2rem] bg-white/[0.028] px-4 py-3 text-sm leading-6 text-slate-300/92"
                 >
-                  {index === 0 ? (
-                    <ClipboardDocumentListIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-200" />
-                  ) : index === 1 ? (
-                    <BoltIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-200" />
-                  ) : (
-                    <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-200" />
-                  )}
-                  <p className="text-sm leading-6 text-slate-300">{tekst}</p>
+                  {tekst}
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="anim-panel">
+            <AbstrakcyjnaGrafika />
           </div>
         </div>
       </section>
