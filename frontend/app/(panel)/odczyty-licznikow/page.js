@@ -2980,20 +2980,20 @@ export default function OdczytyLicznikowPage() {
               </div>
             </div>
             <div className="flex items-start justify-start xl:justify-center">
-              <button
-                className="przycisk-glowny flex h-8 min-w-[132px] items-center justify-center px-4 py-1 text-center text-sm"
-                type="button"
-                onClick={() => {
-                  setKomunikatEksportu("");
-                  setPokazOknoEksportu(true);
-                }}
-              >
-                Eksport
-              </button>
-            </div>
+              <div className="relative inline-flex">
+                <button
+                  className="przycisk-glowny flex h-8 min-w-[132px] items-center justify-center px-4 py-1 text-center text-sm"
+                  type="button"
+                  onClick={() => {
+                    setKomunikatEksportu("");
+                    setPokazOknoEksportu(true);
+                  }}
+                >
+                  Eksport
+                </button>
 
-            {pokazOknoEksportu ? (
-              <div className="anim-dropdown absolute right-0 top-[calc(100%+12px)] z-30 w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-panel p-4 shadow-2xl">
+                {pokazOknoEksportu ? (
+                  <div className="anim-dropdown absolute left-1/2 top-[calc(100%+12px)] z-30 w-[340px] max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-2xl border border-white/10 bg-panel p-4 shadow-2xl">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-semibold text-white">Eksport</h3>
@@ -3208,8 +3208,10 @@ export default function OdczytyLicznikowPage() {
                     </button>
                   </div>
                 </div>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
+            </div>
           </div>
           <div className="order-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] xl:order-2">
             <div className="mb-4 flex items-center justify-between gap-3">
