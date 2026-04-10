@@ -522,6 +522,13 @@ export default function ZgloszeniaPage() {
                     }));
                   }}
                 />
+                {formularz.kontrahent_id ? (
+                  <div className="rounded-2xl border border-emerald-400/14 bg-emerald-500/[0.06] px-4 py-3">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-200/80">Wybrane osiedle</p>
+                    <p className="mt-2 text-lg font-semibold text-slate-50">{formularz.osiedle_nazwa || "-"}</p>
+                    <p className="mt-1 text-sm text-slate-300">{formularz.kontrahent_nazwa || "Bez kontrahenta"}</p>
+                  </div>
+                ) : null}
                 <div className="max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/20 p-2">
                   {!przefiltrowaneOsiedla.length ? (
                     <p className="px-2 py-3 text-sm text-slate-400">Brak osiedli do wybrania.</p>
@@ -548,6 +555,30 @@ export default function ZgloszeniaPage() {
                     </div>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-400">Konserwator</label>
+                <select
+                  className="pole"
+                  value={formularz.konserwator_email}
+                  onChange={(e) => {
+                    const wybranyEmail = e.target.value;
+                    const technik = technicy.find((pozycja) => String(pozycja.email || "") === wybranyEmail);
+                    setFormularz((prev) => ({
+                      ...prev,
+                      konserwator_email: wybranyEmail,
+                      konserwator_nazwa: technik?.imie_nazwisko || ""
+                    }));
+                  }}
+                >
+                  <option value="">Wybierz konserwatora</option>
+                  {technicy.map((technik) => (
+                    <option key={technik.id || technik.email} value={technik.email || ""}>
+                      {technik.imie_nazwisko || technik.email}
+                    </option>
+                  ))}
+                </select>
               </div>
 
             </div>
