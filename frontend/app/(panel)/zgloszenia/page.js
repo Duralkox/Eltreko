@@ -5,7 +5,6 @@ import {
   BuildingOffice2Icon,
   CameraIcon,
   EnvelopeIcon,
-  PaperAirplaneIcon,
   PhotoIcon,
   TrashIcon
 } from "@heroicons/react/24/outline";
@@ -231,7 +230,6 @@ export default function ZgloszeniaPage() {
   const [blad, setBlad] = useState("");
   const [komunikat, setKomunikat] = useState("");
   const [zapisywanie, setZapisywanie] = useState(false);
-  const [wysylanieMaila, setWysylanieMaila] = useState(false);
   const [noweZdjecia, setNoweZdjecia] = useState([]);
 
   async function odswiez() {
@@ -378,50 +376,12 @@ export default function ZgloszeniaPage() {
     }));
   }
 
-  async function skopiujMaila() {
-    try {
-      await navigator.clipboard.writeText(`Temat: ${mailPodglad.temat}\n\n${mailPodglad.tresc}`);
-      setKomunikat("Treść zgłoszenia do maila została skopiowana.");
-    } catch (_error) {
-      setBlad("Nie udało się skopiować treści maila.");
-    }
-  }
-
-  async function wyslijMaila() {
-    setBlad("");
-    setKomunikat("");
-
-    if (!formularz.tytul.trim()) {
-      setBlad("Podaj tytuł zgłoszenia przed wysyłką maila.");
-      return;
-    }
-
-    if (!formularz.kontrahent_id || !formularz.osiedle_nazwa) {
-      setBlad("Wybierz osiedle przed wysyłką maila.");
-      return;
-    }
-
-    if (!emailUzytkownika) {
-      setBlad("Nie znaleziono adresu email zalogowanego użytkownika.");
-      return;
-    }
-
-    setWysylanieMaila(true);
-    try {
-      const wynik = await zapytanieApi("/zgloszenia/wyslij-mail", {
-        method: "POST",
-        body: JSON.stringify({
-          ...formularz,
-          zglaszajacy_email: formularz.zglaszajacy_email || emailUzytkownika
-        })
-      });
-
-      setKomunikat(wynik?.komunikat || "Mail ze zgłoszeniem został wysłany.");
-    } catch (error) {
-      setBlad(error.message);
-    } finally {
-      setWysylanieMaila(false);
-    }
+  function zbudujPayloadFormularza(zdjecia = formularz.zdjecia) {
+    return {
+      ...formularz,
+      zglaszajacy_email: formularz.zglaszajacy_email || emailUzytkownika,
+      zdjecia
+    };
   }
 
   async function zapisz(e) {
@@ -439,17 +399,18 @@ export default function ZgloszeniaPage() {
       return;
     }
 
+    if (!emailUzytkownika) {
+      setBlad("Nie znaleziono adresu email zalogowanego użytkownika.");
+      return;
+    }
+
     setZapisywanie(true);
     try {
       const wrzuconeZdjecia = await Promise.all(
         noweZdjecia.map((zdjecie) => wrzucZdjecie(zdjecie.file, formularz.kontrahent_nazwa || formularz.osiedle_nazwa))
       );
 
-      const payload = {
-        ...formularz,
-        zglaszajacy_email: formularz.zglaszajacy_email || emailUzytkownika,
-        zdjecia: [...normalizujZdjecia(formularz.zdjecia), ...wrzuconeZdjecia]
-      };
+      const payload = zbudujPayloadFormularza([...normalizujZdjecia(formularz.zdjecia), ...wrzuconeZdjecia]);
 
       if (edytowany) {
         await zapytanieApi(`/zgloszenia/${edytowany}`, {
@@ -463,8 +424,13 @@ export default function ZgloszeniaPage() {
         });
       }
 
+      await zapytanieApi("/zgloszenia/wyslij-mail", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
       zresetujFormularz();
-      setKomunikat(edytowany ? "Zgłoszenie zostało zaktualizowane." : "Zgłoszenie zostało zapisane.");
+      setKomunikat("Pomyślnie wysłano zgłoszenie.");
       await odswiez();
     } catch (error) {
       setBlad(error.message);
@@ -681,17 +647,6 @@ export default function ZgloszeniaPage() {
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button type="button" className="przycisk-wtorny" onClick={skopiujMaila}>
-                  Skopiuj treść maila
-                </button>
-                <button type="button" className="przycisk-wtorny" onClick={wyslijMaila} disabled={wysylanieMaila}>
-                  <span className="inline-flex items-center gap-2">
-                    <PaperAirplaneIcon className="h-4 w-4" />
-                    {wysylanieMaila ? "Wysyłanie..." : "Wyślij maila"}
-                  </span>
-                </button>
-              </div>
             </section>
           </div>
         </div>
