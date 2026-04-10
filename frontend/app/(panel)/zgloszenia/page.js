@@ -356,6 +356,11 @@ export default function ZgloszeniaPage() {
     }));
   }
 
+  function pokazListeOsiedli() {
+    setQOsiedle("");
+    setCzyListaOsiedliOtwarta(true);
+  }
+
   function zresetujFormularz() {
     setFormularz({
       ...pustyFormularz,
@@ -515,7 +520,7 @@ export default function ZgloszeniaPage() {
                       className="pole pr-12"
                       placeholder="Wpisz albo wybierz osiedle"
                       value={qOsiedle}
-                      onFocus={() => setCzyListaOsiedliOtwarta(true)}
+                      onFocus={pokazListeOsiedli}
                       onChange={(e) => {
                         const wartosc = e.target.value;
                         setQOsiedle(wartosc);
@@ -534,7 +539,13 @@ export default function ZgloszeniaPage() {
                     <button
                       type="button"
                       className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-400 transition hover:text-slate-200"
-                      onClick={() => setCzyListaOsiedliOtwarta((prev) => !prev)}
+                      onClick={() => {
+                        if (czyListaOsiedliOtwarta) {
+                          setCzyListaOsiedliOtwarta(false);
+                          return;
+                        }
+                        pokazListeOsiedli();
+                      }}
                       aria-label="Pokaż listę osiedli"
                     >
                       <ChevronDownIcon className={`h-5 w-5 transition ${czyListaOsiedliOtwarta ? "rotate-180" : ""}`} />
