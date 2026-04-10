@@ -93,6 +93,21 @@ function przygotujMail(formularz) {
   return { temat, tresc };
 }
 
+function znajdzKonserwatoraDlaOsiedla(osiedle, technicy) {
+  const kontrahent = String(osiedle?.kontrahent_nazwa || "").trim().toLowerCase();
+  if (!kontrahent) return null;
+
+  if (kontrahent === "port praski") {
+    return (
+      technicy.find((technik) => String(technik.imie_nazwisko || "").trim().toLowerCase() === "michał serwis") ||
+      technicy.find((technik) => String(technik.imie_nazwisko || "").trim().toLowerCase() === "michal serwis") ||
+      null
+    );
+  }
+
+  return null;
+}
+
 function formatujDateCzas(data) {
   if (!data) return "";
   return new Date(data).toLocaleString("pl-PL", {
@@ -325,12 +340,16 @@ export default function ZgloszeniaPage() {
   const mailPodglad = useMemo(() => przygotujMail(formularz), [formularz]);
 
   function ustawOsiedle(osiedle) {
+    const konserwator = znajdzKonserwatoraDlaOsiedla(osiedle, technicy);
     setQOsiedle(osiedle.osiedle_nazwa || "");
     setFormularz((prev) => ({
       ...prev,
       kontrahent_id: osiedle.id,
       osiedle_nazwa: osiedle.osiedle_nazwa || "",
-      kontrahent_nazwa: osiedle.kontrahent_nazwa || ""
+      kontrahent_nazwa: osiedle.kontrahent_nazwa || "",
+      konserwator_email: konserwator?.email || "",
+      konserwator_nazwa: konserwator?.imie_nazwisko || "",
+      status: "Nowe"
     }));
   }
 
@@ -496,7 +515,10 @@ export default function ZgloszeniaPage() {
                       ...prev,
                       kontrahent_id: "",
                       osiedle_nazwa: wartosc,
-                      kontrahent_nazwa: ""
+                      kontrahent_nazwa: "",
+                      konserwator_email: "",
+                      konserwator_nazwa: "",
+                      status: "Nowe"
                     }));
                   }}
                 />
@@ -528,32 +550,6 @@ export default function ZgloszeniaPage() {
                 </div>
               </div>
 
-              <select
-                className="pole"
-                value={formularz.konserwator_email}
-                onChange={(e) => {
-                  const wybranyEmail = e.target.value;
-                  const technik = technicy.find((pozycja) => String(pozycja.email || "") === wybranyEmail);
-                  setFormularz((prev) => ({
-                    ...prev,
-                    konserwator_email: wybranyEmail,
-                    konserwator_nazwa: technik?.imie_nazwisko || ""
-                  }));
-                }}
-              >
-                <option value="">Wybierz konserwatora</option>
-                {technicy.map((technik) => (
-                  <option key={technik.id || technik.email} value={technik.email || ""}>
-                    {technik.imie_nazwisko || technik.email} {technik.email ? `(${technik.email})` : ""}
-                  </option>
-                ))}
-              </select>
-
-              <select className="pole md:col-span-2" value={formularz.status} onChange={(e) => setFormularz((prev) => ({ ...prev, status: e.target.value }))}>
-                <option>Nowe</option>
-                <option>W toku</option>
-                <option>Zamknięte</option>
-              </select>
             </div>
 
             <textarea
@@ -626,7 +622,7 @@ export default function ZgloszeniaPage() {
                 </div>
                 <div>
                   <p className="text-base font-semibold text-slate-100">Podgląd maila</p>
-                  <p className="mt-1 text-sm text-slate-400">Zgłoszenie trafi do Ciebie i opcjonalnie do wybranego konserwatora.</p>
+                  <p className="mt-1 text-sm text-slate-400">Zgłoszenie trafi do Ciebie i automatycznie do przypisanego konserwatora.</p>
                 </div>
               </div>
 
