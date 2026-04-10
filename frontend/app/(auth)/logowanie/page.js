@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { zapytanieApi } from "../../../lib/api";
-import { czyZapamietajMnie, zapiszSesje } from "../../../lib/auth";
+import { czyZapamietajMnie, pobierzSesje, zapiszSesje } from "../../../lib/auth";
 import { supabase } from "../../../lib/supabase";
 
 function czyPoprawnyEmail(wartosc) {
@@ -32,6 +32,7 @@ export default function StronaLogowania() {
   const [wiadomosc, setWiadomosc] = useState("");
   const [pokazEasterEgg, setPokazEasterEgg] = useState(false);
   const [ladowanie, setLadowanie] = useState(false);
+  const [sprawdzanieSesji, setSprawdzanieSesji] = useState(true);
   const [trybResetu, setTrybResetu] = useState(false);
   const [zapamietaj, setZapamietaj] = useState(false);
 
@@ -39,6 +40,53 @@ export default function StronaLogowania() {
     if (typeof window === "undefined") return;
     setZapamietaj(czyZapamietajMnie());
   }, []);
+
+  useEffect(() => {
+    let aktywny = true;
+
+    async function sprawdzSesje() {
+      if (typeof window === "undefined") return;
+
+      if (window.location.hash.includes("type=recovery")) {
+        if (aktywny) {
+          setSprawdzanieSesji(false);
+        }
+        return;
+      }
+
+      const lokalnaSesja = pobierzSesje();
+      if (lokalnaSesja?.token) {
+        router.replace("/start");
+        return;
+      }
+
+      if (!supabase) {
+        if (aktywny) {
+          setSprawdzanieSesji(false);
+        }
+        return;
+      }
+
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+
+      if (session?.access_token) {
+        router.replace("/start");
+        return;
+      }
+
+      if (aktywny) {
+        setSprawdzanieSesji(false);
+      }
+    }
+
+    sprawdzSesje();
+
+    return () => {
+      aktywny = false;
+    };
+  }, [router]);
 
   useEffect(() => {
     if (!supabase || typeof window === "undefined") {
@@ -205,6 +253,10 @@ export default function StronaLogowania() {
 
   const klasyInputa =
     "pole h-12 rounded-xl border-white/[0.07] bg-white/[0.025] px-4 text-sm transition placeholder:text-slate-500/90 focus:border-emerald-200/20 focus:bg-white/[0.04]";
+
+  if (sprawdzanieSesji) {
+    return null;
+  }
 
   return (
     <div className="karta-szklana relative w-full max-w-sm overflow-hidden rounded-[24px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(35,47,57,0.985)_0%,rgba(32,44,54,0.955)_56%,rgba(29,40,50,0.94)_100%)] p-6 shadow-[0_22px_60px_rgba(0,0,0,0.28)]">
