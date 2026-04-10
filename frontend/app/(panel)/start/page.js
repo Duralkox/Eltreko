@@ -20,7 +20,7 @@ const KAFLE = [
     ikona: CalculatorIcon
   },
   {
-    href: "/panel-glowny",
+    href: "/zgloszenia",
     etykieta: "Zgłoszenia",
     ikona: ClipboardDocumentListIcon
   }
