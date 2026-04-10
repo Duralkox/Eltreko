@@ -24,9 +24,7 @@ const pustyFormularz = {
   kontrahent_nazwa: "",
   konserwator_email: "",
   konserwator_nazwa: "",
-  kategoria_usterki_id: "",
   status: "Nowe",
-  priorytet: "Normalny",
   zdjecia: []
 };
 
@@ -87,7 +85,7 @@ function przygotujMail(formularz) {
     `Kontrahent: ${formularz.kontrahent_nazwa || "-"}`,
     `Osiedle: ${formularz.osiedle_nazwa || "-"}`,
     `Konserwator: ${formularz.konserwator_nazwa || formularz.konserwator_email || "-"}`,
-    `Priorytet: ${formularz.priorytet || "Normalny"}`,
+    `Stan zgłoszenia: ${formularz.status || "Nowe"}`,
     "",
     "Opis zgłoszenia:",
     formularz.opis || "-"
@@ -222,7 +220,6 @@ export default function ZgloszeniaPage() {
 
   const [lista, setLista] = useState([]);
   const [osiedla, setOsiedla] = useState([]);
-  const [kategorie, setKategorie] = useState([]);
   const [technicy, setTechnicy] = useState([]);
   const [formularz, setFormularz] = useState(() => ({
     ...pustyFormularz,
@@ -240,17 +237,15 @@ export default function ZgloszeniaPage() {
   async function odswiez() {
     setBlad("");
 
-    const [zgloszeniaRes, opcjeRes, kategorieRes, technicyRes] = await Promise.allSettled([
+    const [zgloszeniaRes, opcjeRes, technicyRes] = await Promise.allSettled([
       zapytanieApi(`/zgloszenia?q=${encodeURIComponent(q)}`),
       zapytanieApi("/zgloszenia/opcje"),
-      zapytanieApi("/kategorie-usterek"),
       zapytanieApi("/technicy")
     ]);
 
     const zgloszenia = zgloszeniaRes.status === "fulfilled" && Array.isArray(zgloszeniaRes.value) ? zgloszeniaRes.value : [];
     setLista(zgloszenia);
     setOsiedla(opcjeRes.status === "fulfilled" && Array.isArray(opcjeRes.value) ? opcjeRes.value : []);
-    setKategorie(kategorieRes.status === "fulfilled" && Array.isArray(kategorieRes.value) ? kategorieRes.value : []);
     setTechnicy(technicyRes.status === "fulfilled" && Array.isArray(technicyRes.value) ? technicyRes.value : []);
 
     if (opcjeRes.status !== "fulfilled") {
@@ -413,13 +408,11 @@ export default function ZgloszeniaPage() {
 
     setWysylanieMaila(true);
     try {
-      const kategoria = kategorie.find((pozycja) => String(pozycja.id) === String(formularz.kategoria_usterki_id));
       const wynik = await zapytanieApi("/zgloszenia/wyslij-mail", {
         method: "POST",
         body: JSON.stringify({
           ...formularz,
-          zglaszajacy_email: formularz.zglaszajacy_email || emailUzytkownika,
-          kategoria_nazwa: kategoria?.nazwa || ""
+          zglaszajacy_email: formularz.zglaszajacy_email || emailUzytkownika
         })
       });
 
@@ -492,9 +485,7 @@ export default function ZgloszeniaPage() {
       kontrahent_nazwa: wpis.kontrahent_nazwa || "",
       konserwator_email: wpis.konserwator_email || "",
       konserwator_nazwa: wpis.konserwator_nazwa || "",
-      kategoria_usterki_id: wpis.kategoria_usterki_id || "",
       status: wpis.status || "Nowe",
-      priorytet: wpis.priorytet || "Normalny",
       zglaszajacy_email: wpis.zglaszajacy_email || emailUzytkownika,
       zdjecia: Array.isArray(wpis.zdjecia) ? wpis.zdjecia : []
     });
@@ -571,8 +562,6 @@ export default function ZgloszeniaPage() {
                 </div>
               </div>
 
-              <input className="pole" value={formularz.kontrahent_nazwa} placeholder="Kontrahent przypisze się z osiedla" readOnly />
-
               <select
                 className="pole"
                 value={formularz.konserwator_email}
@@ -594,26 +583,7 @@ export default function ZgloszeniaPage() {
                 ))}
               </select>
 
-              <select
-                className="pole"
-                value={formularz.kategoria_usterki_id}
-                onChange={(e) => setFormularz((prev) => ({ ...prev, kategoria_usterki_id: e.target.value }))}
-              >
-                <option value="">Wybierz kategorię usterki</option>
-                {kategorie.map((kategoria) => (
-                  <option key={kategoria.id} value={kategoria.id}>
-                    {kategoria.nazwa}
-                  </option>
-                ))}
-              </select>
-
-              <select className="pole" value={formularz.priorytet} onChange={(e) => setFormularz((prev) => ({ ...prev, priorytet: e.target.value }))}>
-                <option>Niski</option>
-                <option>Normalny</option>
-                <option>Wysoki</option>
-              </select>
-
-              <select className="pole" value={formularz.status} onChange={(e) => setFormularz((prev) => ({ ...prev, status: e.target.value }))}>
+              <select className="pole md:col-span-2" value={formularz.status} onChange={(e) => setFormularz((prev) => ({ ...prev, status: e.target.value }))}>
                 <option>Nowe</option>
                 <option>W toku</option>
                 <option>Zamknięte</option>
@@ -669,7 +639,10 @@ export default function ZgloszeniaPage() {
 
             <div className="flex flex-wrap gap-2">
               <button className="przycisk-glowny" disabled={zapisywanie}>
-                {zapisywanie ? "Zapisywanie..." : edytowany ? "Zapisz zmiany" : "Dodaj zgłoszenie"}
+                <span className="inline-flex items-center gap-2">
+                  <EnvelopeIcon className="h-4 w-4" />
+                  {zapisywanie ? "Wysyłanie..." : edytowany ? "Zapisz zmiany" : "Wyślij zgłoszenie"}
+                </span>
               </button>
               {edytowany ? (
                 <button type="button" className="przycisk-wtorny" onClick={zresetujFormularz}>
@@ -686,8 +659,8 @@ export default function ZgloszeniaPage() {
                   <EnvelopeIcon className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-base font-semibold text-slate-100">Mail zgłoszeniowy</p>
-                  <p className="mt-1 text-sm text-slate-400">Mail poleci do Ciebie, a opcjonalnie także do wybranego konserwatora.</p>
+                  <p className="text-base font-semibold text-slate-100">Podgląd maila</p>
+                  <p className="mt-1 text-sm text-slate-400">Zgłoszenie trafi do Ciebie i opcjonalnie do wybranego konserwatora.</p>
                 </div>
               </div>
 
@@ -720,15 +693,6 @@ export default function ZgloszeniaPage() {
                 </button>
               </div>
             </section>
-
-            <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
-              <p className="text-base font-semibold text-slate-100">Podpowiedź workflow</p>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-                <li>1. Wybierz osiedle i konserwatora.</li>
-                <li>2. Dodaj opis oraz zdjęcia.</li>
-                <li>3. Zapisz zgłoszenie lub wyślij je od razu mailem.</li>
-              </ul>
-            </section>
           </div>
         </div>
 
@@ -756,9 +720,8 @@ export default function ZgloszeniaPage() {
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-400">
                     <span>{wpis.kontrahent_nazwa || "Bez kontrahenta"}</span>
                     <span>{wpis.osiedle_nazwa || "Bez osiedla"}</span>
-                    <span>{wpis.kategoria_nazwa || "Bez kategorii"}</span>
                     <span>{wpis.konserwator_nazwa || wpis.konserwator_email || "Bez konserwatora"}</span>
-                    <span>{wpis.priorytet}</span>
+                    <span>{wpis.status || "Nowe"}</span>
                     <span>{formatujDateCzas(wpis.created_at)}</span>
                   </div>
                 </div>
