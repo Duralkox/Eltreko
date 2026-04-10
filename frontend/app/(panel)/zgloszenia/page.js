@@ -16,19 +16,21 @@ import { czySupabaseSkonfigurowany, supabase } from "../../../lib/supabase";
 
 const BUCKET_ZDJEC = "eltreko-files";
 
-const pusty = {
+const pustyFormularz = {
   tytul: "",
   opis: "",
   kontrahent_id: "",
   osiedle_nazwa: "",
   kontrahent_nazwa: "",
+  konserwator_email: "",
+  konserwator_nazwa: "",
   kategoria_usterki_id: "",
   status: "Nowe",
   priorytet: "Normalny",
   zdjecia: []
 };
 
-function slugifyWzglednie(tekst) {
+function slugify(tekst) {
   return String(tekst || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -43,13 +45,40 @@ function dataFolderu() {
   return `${dzis.getFullYear()}-${String(dzis.getMonth() + 1).padStart(2, "0")}-${String(dzis.getDate()).padStart(2, "0")}`;
 }
 
+function normalizujZdjecia(zdjecia) {
+  if (!Array.isArray(zdjecia)) return [];
+
+  return zdjecia
+    .map((zdjecie) => {
+      if (!zdjecie) return null;
+      if (typeof zdjecie === "string") {
+        return {
+          name: zdjecie.split("/").pop() || "zdjecie",
+          path: zdjecie
+        };
+      }
+
+      const name = String(zdjecie.name || zdjecie.fileName || zdjecie.path || "").trim();
+      const path = String(zdjecie.path || "").trim();
+      const url = String(zdjecie.url || "").trim();
+      const bucket = String(zdjecie.bucket || "").trim();
+      const contentType = String(zdjecie.contentType || "").trim();
+
+      if (!name && !path && !url) return null;
+
+      return {
+        name: name || path.split("/").pop() || "zdjecie",
+        path: path || null,
+        url: url || null,
+        bucket: bucket || null,
+        contentType: contentType || null
+      };
+    })
+    .filter(Boolean);
+}
+
 function przygotujMail(formularz) {
-  const temat = [
-    "Zgłoszenie serwisowe",
-    formularz.kontrahent_nazwa || null,
-    formularz.osiedle_nazwa || null,
-    formularz.tytul || null
-  ]
+  const temat = ["Zgłoszenie serwisowe", formularz.kontrahent_nazwa || null, formularz.osiedle_nazwa || null, formularz.tytul || null]
     .filter(Boolean)
     .join(" - ");
 
@@ -57,6 +86,7 @@ function przygotujMail(formularz) {
     `Tytuł: ${formularz.tytul || "-"}`,
     `Kontrahent: ${formularz.kontrahent_nazwa || "-"}`,
     `Osiedle: ${formularz.osiedle_nazwa || "-"}`,
+    `Konserwator: ${formularz.konserwator_nazwa || formularz.konserwator_email || "-"}`,
     `Priorytet: ${formularz.priorytet || "Normalny"}`,
     "",
     "Opis zgłoszenia:",
@@ -118,16 +148,16 @@ async function uzupelnijPodgladyZdjec(wpisy) {
   );
 }
 
-async function wrzucZdjecie(plik, metadane = {}) {
+async function wrzucZdjecie(plik, kontrahentNazwa) {
   if (!czySupabaseSkonfigurowany || !supabase) {
     throw new Error("Supabase Storage nie jest skonfigurowany dla zdjęć zgłoszeń.");
   }
 
   const rozszerzenie = String(plik.name || "").split(".").pop() || "jpg";
-  const bazowaNazwa = slugifyWzglednie(plik.name || `zdjecie.${rozszerzenie}`) || `zdjecie.${rozszerzenie}`;
+  const bazowaNazwa = slugify(plik.name || `zdjecie.${rozszerzenie}`) || `zdjecie.${rozszerzenie}`;
   const sciezka = [
     "zgloszenia",
-    slugifyWzglednie(metadane.kontrahentNazwa || "ogolne") || "ogolne",
+    slugify(kontrahentNazwa || "ogolne") || "ogolne",
     dataFolderu(),
     `${Date.now()}-${bazowaNazwa}`
   ].join("/");
@@ -154,11 +184,11 @@ async function wrzucZdjecie(plik, metadane = {}) {
 
 function MiniaturaZdjecia({ zdjecie, onUsun, tryb = "zapisane" }) {
   const url = zdjecie.podglad || zdjecie.url || "";
+
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-2">
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-900/50">
         {url ? (
-          // Zwykły img lepiej radzi sobie z blobami z telefonu i z linkami storage.
           <img src={url} alt={zdjecie.name || "Zdjęcie zgłoszenia"} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-slate-500">
@@ -171,14 +201,16 @@ function MiniaturaZdjecia({ zdjecie, onUsun, tryb = "zapisane" }) {
           <p className="truncate text-xs font-medium text-slate-100">{zdjecie.name || "Zdjęcie"}</p>
           <p className="text-[11px] text-slate-400">{tryb === "nowe" ? "Do wrzucenia przy zapisie" : "Zapisane"}</p>
         </div>
-        <button
-          type="button"
-          className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
-          onClick={onUsun}
-          aria-label="Usuń zdjęcie"
-        >
-          <TrashIcon className="h-4 w-4" />
-        </button>
+        {onUsun ? (
+          <button
+            type="button"
+            className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
+            onClick={onUsun}
+            aria-label="Usuń zdjęcie"
+          >
+            <TrashIcon className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -191,8 +223,9 @@ export default function ZgloszeniaPage() {
   const [lista, setLista] = useState([]);
   const [osiedla, setOsiedla] = useState([]);
   const [kategorie, setKategorie] = useState([]);
+  const [technicy, setTechnicy] = useState([]);
   const [formularz, setFormularz] = useState(() => ({
-    ...pusty,
+    ...pustyFormularz,
     zglaszajacy_email: emailUzytkownika
   }));
   const [edytowany, setEdytowany] = useState(null);
@@ -201,19 +234,24 @@ export default function ZgloszeniaPage() {
   const [blad, setBlad] = useState("");
   const [komunikat, setKomunikat] = useState("");
   const [zapisywanie, setZapisywanie] = useState(false);
+  const [wysylanieMaila, setWysylanieMaila] = useState(false);
   const [noweZdjecia, setNoweZdjecia] = useState([]);
 
   async function odswiez() {
     setBlad("");
-    const [zgloszeniaRes, opcjeRes, kategorieRes] = await Promise.allSettled([
+
+    const [zgloszeniaRes, opcjeRes, kategorieRes, technicyRes] = await Promise.allSettled([
       zapytanieApi(`/zgloszenia?q=${encodeURIComponent(q)}`),
       zapytanieApi("/zgloszenia/opcje"),
-      zapytanieApi("/kategorie-usterek")
+      zapytanieApi("/kategorie-usterek"),
+      zapytanieApi("/technicy")
     ]);
 
-    setLista(zgloszeniaRes.status === "fulfilled" && Array.isArray(zgloszeniaRes.value) ? zgloszeniaRes.value : []);
+    const zgloszenia = zgloszeniaRes.status === "fulfilled" && Array.isArray(zgloszeniaRes.value) ? zgloszeniaRes.value : [];
+    setLista(zgloszenia);
     setOsiedla(opcjeRes.status === "fulfilled" && Array.isArray(opcjeRes.value) ? opcjeRes.value : []);
     setKategorie(kategorieRes.status === "fulfilled" && Array.isArray(kategorieRes.value) ? kategorieRes.value : []);
+    setTechnicy(technicyRes.status === "fulfilled" && Array.isArray(technicyRes.value) ? technicyRes.value : []);
 
     if (opcjeRes.status !== "fulfilled") {
       setBlad("Nie udało się pobrać listy osiedli.");
@@ -227,10 +265,11 @@ export default function ZgloszeniaPage() {
   useEffect(() => {
     let aktywny = true;
 
-    async function uzupelnijPodgladyListy() {
+    async function uzupelnijListe() {
       if (!lista.length) return;
       const zUrl = await uzupelnijPodgladyZdjec(lista);
       if (!aktywny) return;
+
       setLista((poprzednie) => {
         const poprzedniKlucz = JSON.stringify(poprzednie.map((wpis) => [wpis.id, (wpis.zdjecia || []).map((z) => z.url || z.path || z.name)]));
         const nowyKlucz = JSON.stringify(zUrl.map((wpis) => [wpis.id, (wpis.zdjecia || []).map((z) => z.url || z.path || z.name)]));
@@ -238,7 +277,7 @@ export default function ZgloszeniaPage() {
       });
     }
 
-    uzupelnijPodgladyListy().catch(() => null);
+    uzupelnijListe().catch(() => null);
     return () => {
       aktywny = false;
     };
@@ -254,7 +293,7 @@ export default function ZgloszeniaPage() {
   useEffect(() => {
     let aktywny = true;
 
-    async function uzupelnijPodgladyFormularza() {
+    async function uzupelnijFormularz() {
       const zdjecia = Array.isArray(formularz.zdjecia) ? formularz.zdjecia : [];
       if (!zdjecia.length) return;
 
@@ -267,20 +306,13 @@ export default function ZgloszeniaPage() {
 
       if (!aktywny) return;
 
-      setFormularz((prev) => {
-        const poprzedniKlucz = JSON.stringify((prev.zdjecia || []).map((z) => z.url || z.path || z.name));
-        const nowyKlucz = JSON.stringify(zUrl.map((z) => z.url || z.path || z.name));
-        if (poprzedniKlucz === nowyKlucz) {
-          return prev;
-        }
-        return {
-          ...prev,
-          zdjecia: zUrl
-        };
-      });
+      setFormularz((prev) => ({
+        ...prev,
+        zdjecia: zUrl
+      }));
     }
 
-    uzupelnijPodgladyFormularza().catch(() => null);
+    uzupelnijFormularz().catch(() => null);
     return () => {
       aktywny = false;
     };
@@ -289,6 +321,7 @@ export default function ZgloszeniaPage() {
   const przefiltrowaneOsiedla = useMemo(() => {
     const fraza = qOsiedle.trim().toLowerCase();
     if (!fraza) return osiedla;
+
     return osiedla.filter((osiedle) => {
       const osiedleNazwa = String(osiedle.osiedle_nazwa || "").toLowerCase();
       const kontrahentNazwa = String(osiedle.kontrahent_nazwa || "").toLowerCase();
@@ -310,7 +343,7 @@ export default function ZgloszeniaPage() {
 
   function zresetujFormularz() {
     setFormularz({
-      ...pusty,
+      ...pustyFormularz,
       zglaszajacy_email: emailUzytkownika
     });
     setEdytowany(null);
@@ -359,6 +392,50 @@ export default function ZgloszeniaPage() {
     }
   }
 
+  async function wyslijMaila() {
+    setBlad("");
+    setKomunikat("");
+
+    if (!formularz.tytul.trim()) {
+      setBlad("Podaj tytuł zgłoszenia przed wysyłką maila.");
+      return;
+    }
+
+    if (!formularz.kontrahent_id || !formularz.osiedle_nazwa) {
+      setBlad("Wybierz osiedle przed wysyłką maila.");
+      return;
+    }
+
+    if (!formularz.konserwator_email) {
+      setBlad("Wybierz konserwatora z listy.");
+      return;
+    }
+
+    if (!emailUzytkownika) {
+      setBlad("Nie znaleziono adresu email zalogowanego użytkownika.");
+      return;
+    }
+
+    setWysylanieMaila(true);
+    try {
+      const kategoria = kategorie.find((pozycja) => String(pozycja.id) === String(formularz.kategoria_usterki_id));
+      const wynik = await zapytanieApi("/zgloszenia/wyslij-mail", {
+        method: "POST",
+        body: JSON.stringify({
+          ...formularz,
+          zglaszajacy_email: formularz.zglaszajacy_email || emailUzytkownika,
+          kategoria_nazwa: kategoria?.nazwa || ""
+        })
+      });
+
+      setKomunikat(wynik?.komunikat || "Mail ze zgłoszeniem został wysłany.");
+    } catch (error) {
+      setBlad(error.message);
+    } finally {
+      setWysylanieMaila(false);
+    }
+  }
+
   async function zapisz(e) {
     e.preventDefault();
     setBlad("");
@@ -377,17 +454,13 @@ export default function ZgloszeniaPage() {
     setZapisywanie(true);
     try {
       const wrzuconeZdjecia = await Promise.all(
-        noweZdjecia.map((zdjecie) =>
-          wrzucZdjecie(zdjecie.file, {
-            kontrahentNazwa: formularz.kontrahent_nazwa || formularz.osiedle_nazwa
-          })
-        )
+        noweZdjecia.map((zdjecie) => wrzucZdjecie(zdjecie.file, formularz.kontrahent_nazwa || formularz.osiedle_nazwa))
       );
 
       const payload = {
         ...formularz,
         zglaszajacy_email: formularz.zglaszajacy_email || emailUzytkownika,
-        zdjecia: [...(Array.isArray(formularz.zdjecia) ? formularz.zdjecia : []), ...wrzuconeZdjecia]
+        zdjecia: [...normalizujZdjecia(formularz.zdjecia), ...wrzuconeZdjecia]
       };
 
       if (edytowany) {
@@ -422,6 +495,8 @@ export default function ZgloszeniaPage() {
       kontrahent_id: wpis.kontrahent_id || "",
       osiedle_nazwa: wpis.osiedle_nazwa || "",
       kontrahent_nazwa: wpis.kontrahent_nazwa || "",
+      konserwator_email: wpis.konserwator_email || "",
+      konserwator_nazwa: wpis.konserwator_nazwa || "",
       kategoria_usterki_id: wpis.kategoria_usterki_id || "",
       status: wpis.status || "Nowe",
       priorytet: wpis.priorytet || "Normalny",
@@ -441,7 +516,7 @@ export default function ZgloszeniaPage() {
     <div className="space-y-6">
       <SekcjaNaglowek
         tytul="Zgłoszenia"
-        opis="Nowy moduł zgłoszeń pod administratorów i pracę z telefonu: osiedle, zdjęcia i gotowa treść pod maila."
+        opis="Administrator wybiera osiedle, konserwatora, dodaje zdjęcia i może od razu wysłać zgłoszenie mailem."
       />
 
       <form onSubmit={zapisz} className="karta-szklana rounded-3xl p-4 sm:p-5">
@@ -505,6 +580,27 @@ export default function ZgloszeniaPage() {
 
               <select
                 className="pole"
+                value={formularz.konserwator_email}
+                onChange={(e) => {
+                  const wybranyEmail = e.target.value;
+                  const technik = technicy.find((pozycja) => String(pozycja.email || "") === wybranyEmail);
+                  setFormularz((prev) => ({
+                    ...prev,
+                    konserwator_email: wybranyEmail,
+                    konserwator_nazwa: technik?.imie_nazwisko || ""
+                  }));
+                }}
+              >
+                <option value="">Wybierz konserwatora</option>
+                {technicy.map((technik) => (
+                  <option key={technik.id || technik.email} value={technik.email || ""}>
+                    {technik.imie_nazwisko || technik.email} {technik.email ? `(${technik.email})` : ""}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="pole"
                 value={formularz.kategoria_usterki_id}
                 onChange={(e) => setFormularz((prev) => ({ ...prev, kategoria_usterki_id: e.target.value }))}
               >
@@ -525,7 +621,7 @@ export default function ZgloszeniaPage() {
               <select className="pole" value={formularz.status} onChange={(e) => setFormularz((prev) => ({ ...prev, status: e.target.value }))}>
                 <option>Nowe</option>
                 <option>W toku</option>
-                <option>Zamkniete</option>
+                <option>Zamknięte</option>
               </select>
             </div>
 
@@ -596,11 +692,17 @@ export default function ZgloszeniaPage() {
                 </div>
                 <div>
                   <p className="text-base font-semibold text-slate-100">Mail zgłoszeniowy</p>
-                  <p className="mt-1 text-sm text-slate-400">API wysyłki podepniemy później, ale treść i temat są już gotowe.</p>
+                  <p className="mt-1 text-sm text-slate-400">Mail poleci do Ciebie i do wybranego konserwatora.</p>
                 </div>
               </div>
 
               <div className="mt-4 space-y-3 rounded-2xl border border-white/10 bg-slate-950/20 p-4">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Odbiorcy</p>
+                  <p className="mt-2 text-sm text-slate-100">
+                    {[emailUzytkownika || null, formularz.konserwator_email || null].filter(Boolean).join(", ") || "Wybierz konserwatora."}
+                  </p>
+                </div>
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Temat</p>
                   <p className="mt-2 text-sm text-slate-100">{mailPodglad.temat || "Temat uzupełni się z formularza."}</p>
@@ -615,10 +717,10 @@ export default function ZgloszeniaPage() {
                 <button type="button" className="przycisk-wtorny" onClick={skopiujMaila}>
                   Skopiuj treść maila
                 </button>
-                <button type="button" className="przycisk-wtorny opacity-70" disabled>
+                <button type="button" className="przycisk-wtorny" onClick={wyslijMaila} disabled={wysylanieMaila}>
                   <span className="inline-flex items-center gap-2">
                     <PaperAirplaneIcon className="h-4 w-4" />
-                    Wyślij maila
+                    {wysylanieMaila ? "Wysyłanie..." : "Wyślij maila"}
                   </span>
                 </button>
               </div>
@@ -627,9 +729,9 @@ export default function ZgloszeniaPage() {
             <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
               <p className="text-base font-semibold text-slate-100">Podpowiedź workflow</p>
               <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-                <li>1. Wybierz osiedle, a kontrahent przypisze się automatycznie.</li>
-                <li>2. Dodaj opis i zdjęcia z telefonu lub z pliku.</li>
-                <li>3. Zapisz zgłoszenie, a na końcu podepniemy wysyłkę mailową przez API.</li>
+                <li>1. Wybierz osiedle i konserwatora.</li>
+                <li>2. Dodaj opis oraz zdjęcia.</li>
+                <li>3. Zapisz zgłoszenie lub wyślij je od razu mailem.</li>
               </ul>
             </section>
           </div>
@@ -645,7 +747,7 @@ export default function ZgloszeniaPage() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-lg font-semibold text-slate-100">Lista zgłoszeń</p>
-            <p className="mt-1 text-sm text-slate-400">Podgląd aktualnych wpisów, zdjęć i przygotowanej treści do maila.</p>
+            <p className="mt-1 text-sm text-slate-400">Podgląd aktualnych wpisów, zdjęć i gotowej treści do maila.</p>
           </div>
           <input className="pole h-11 w-full max-w-sm" placeholder="Szukaj zgłoszenia" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
@@ -660,6 +762,7 @@ export default function ZgloszeniaPage() {
                     <span>{wpis.kontrahent_nazwa || "Bez kontrahenta"}</span>
                     <span>{wpis.osiedle_nazwa || "Bez osiedla"}</span>
                     <span>{wpis.kategoria_nazwa || "Bez kategorii"}</span>
+                    <span>{wpis.konserwator_nazwa || wpis.konserwator_email || "Bez konserwatora"}</span>
                     <span>{wpis.priorytet}</span>
                     <span>{formatujDateCzas(wpis.created_at)}</span>
                   </div>

@@ -28,6 +28,117 @@ function utworzTransporter() {
   });
 }
 
+function normalizujAdresatow(lista) {
+  return Array.from(
+    new Set(
+      (Array.isArray(lista) ? lista : [lista])
+        .map((adres) => String(adres || "").trim().toLowerCase())
+        .filter(Boolean)
+    )
+  );
+}
+
+async function wyslijPrzezMailerSend({ to, subject, text, html, replyTo }) {
+  const apiKey = String(process.env.MAILERSEND_API_KEY || "").trim();
+  const from = String(process.env.MAIL_FROM || "").trim();
+
+  if (!apiKey || !from) {
+    throw new Error("MailerSend nie jest jeszcze skonfigurowany na serwerze.");
+  }
+
+  const adresaci = normalizujAdresatow(to);
+  if (!adresaci.length) {
+    throw new Error("Brak adresatow wiadomosci.");
+  }
+
+  const odpowiedz = await fetch("https://api.mailersend.com/v1/email", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: { email: from },
+      to: adresaci.map((email) => ({ email })),
+      reply_to: replyTo ? { email: replyTo } : undefined,
+      subject,
+      text,
+      html
+    })
+  });
+
+  if (!odpowiedz.ok) {
+    const tresc = await odpowiedz.text().catch(() => "");
+    throw new Error(`MailerSend odrzucil wysylke (${odpowiedz.status}). ${tresc}`.trim());
+  }
+}
+
+async function wyslijMailZgloszenia({
+  doKogo,
+  zglaszajacyEmail,
+  konserwatorEmail,
+  konserwatorNazwa,
+  formularz
+}) {
+  const adresaci = normalizujAdresatow(doKogo);
+  if (!adresaci.length) {
+    throw new Error("Brak odbiorcow zgloszenia.");
+  }
+
+  const temat = [
+    "Zgloszenie serwisowe",
+    formularz.kontrahent_nazwa || null,
+    formularz.osiedle_nazwa || null,
+    formularz.tytul || null
+  ]
+    .filter(Boolean)
+    .join(" - ");
+
+  const tresc = [
+    `Tytul: ${formularz.tytul || "-"}`,
+    `Kontrahent: ${formularz.kontrahent_nazwa || "-"}`,
+    `Osiedle: ${formularz.osiedle_nazwa || "-"}`,
+    `Kategoria: ${formularz.kategoria_nazwa || formularz.kategoria_usterki_nazwa || "-"}`,
+    `Priorytet: ${formularz.priorytet || "Normalny"}`,
+    `Status: ${formularz.status || "Nowe"}`,
+    `Konserwator: ${konserwatorNazwa || konserwatorEmail || "-"}`,
+    "",
+    "Opis zgloszenia:",
+    formularz.opis || "-"
+  ].join("\n");
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6;">
+      <p>Nowe zgloszenie serwisowe.</p>
+      <table style="border-collapse: collapse; width: 100%; margin: 16px 0;">
+        <tbody>
+          <tr><td style="padding: 6px 0; font-weight: 700;">Tytul</td><td style="padding: 6px 0;">${formularz.tytul || "-"}</td></tr>
+          <tr><td style="padding: 6px 0; font-weight: 700;">Kontrahent</td><td style="padding: 6px 0;">${formularz.kontrahent_nazwa || "-"}</td></tr>
+          <tr><td style="padding: 6px 0; font-weight: 700;">Osiedle</td><td style="padding: 6px 0;">${formularz.osiedle_nazwa || "-"}</td></tr>
+          <tr><td style="padding: 6px 0; font-weight: 700;">Kategoria</td><td style="padding: 6px 0;">${formularz.kategoria_nazwa || formularz.kategoria_usterki_nazwa || "-"}</td></tr>
+          <tr><td style="padding: 6px 0; font-weight: 700;">Priorytet</td><td style="padding: 6px 0;">${formularz.priorytet || "Normalny"}</td></tr>
+          <tr><td style="padding: 6px 0; font-weight: 700;">Status</td><td style="padding: 6px 0;">${formularz.status || "Nowe"}</td></tr>
+          <tr><td style="padding: 6px 0; font-weight: 700;">Konserwator</td><td style="padding: 6px 0;">${konserwatorNazwa || konserwatorEmail || "-"}</td></tr>
+          <tr><td style="padding: 6px 0; font-weight: 700;">Zglaszajacy</td><td style="padding: 6px 0;">${zglaszajacyEmail || "-"}</td></tr>
+        </tbody>
+      </table>
+      <p style="font-weight:700;margin:16px 0 6px;">Opis zgloszenia</p>
+      <div style="white-space: pre-wrap;">${String(formularz.opis || "-")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")}</div>
+    </div>
+  `;
+
+  await wyslijPrzezMailerSend({
+    to: adresaci,
+    subject: temat,
+    text: tresc,
+    html,
+    replyTo: zglaszajacyEmail || undefined
+  });
+}
+
 async function wyslijKodResetuHasla({ email, kod, imieNazwisko }) {
   const transporter = utworzTransporter();
   const temat = "EltrekoAPP - kod resetu hasła";
@@ -114,5 +225,6 @@ async function wyslijNotatkeDoKalendarza({ email, imieNazwisko, notatka }) {
 
 module.exports = {
   wyslijKodResetuHasla,
-  wyslijNotatkeDoKalendarza
+  wyslijNotatkeDoKalendarza,
+  wyslijMailZgloszenia
 };

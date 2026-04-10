@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const { wyslijMailZgloszenia } = require("../services/emailService");
 
 let tabelaZgloszenRozszerzona = false;
 
@@ -83,6 +84,16 @@ async function zapewnijRozszerzonaTabeleZgloszen() {
     ADD COLUMN IF NOT EXISTS zdjecia_json LONGTEXT NULL AFTER zglaszajacy_email
   `);
 
+  await db.query(`
+    ALTER TABLE zgloszenia
+    ADD COLUMN IF NOT EXISTS konserwator_email VARCHAR(220) NULL AFTER zglaszajacy_email
+  `);
+
+  await db.query(`
+    ALTER TABLE zgloszenia
+    ADD COLUMN IF NOT EXISTS konserwator_nazwa VARCHAR(220) NULL AFTER konserwator_email
+  `);
+
   tabelaZgloszenRozszerzona = true;
 }
 
@@ -158,6 +169,8 @@ async function utworzZgloszenie(req, res) {
     osiedle_nazwa,
     kontrahent_nazwa,
     zglaszajacy_email,
+    konserwator_email,
+    konserwator_nazwa,
     zdjecia,
     kategoria_usterki_id,
     status,
@@ -172,10 +185,10 @@ async function utworzZgloszenie(req, res) {
 
   const insert = await db.query(
     `INSERT INTO zgloszenia(
-      tytul, opis, kontrahent_id, osiedle_nazwa, kontrahent_nazwa, zglaszajacy_email, zdjecia_json,
+      tytul, opis, kontrahent_id, osiedle_nazwa, kontrahent_nazwa, zglaszajacy_email, konserwator_email, konserwator_nazwa, zdjecia_json,
       kategoria_usterki_id, status, priorytet
      )
-     VALUES(?,?,?,?,?,?,?,?,?,?)`,
+     VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`,
     [
       String(tytul).trim(),
       opis || "",
@@ -183,6 +196,8 @@ async function utworzZgloszenie(req, res) {
       String(osiedle_nazwa || "").trim() || null,
       String(kontrahent_nazwa || "").trim() || null,
       String(zglaszajacy_email || req.uzytkownik?.email || "").trim() || null,
+      String(konserwator_email || "").trim() || null,
+      String(konserwator_nazwa || "").trim() || null,
       zdjeciaJson,
       kategoria_usterki_id || null,
       status || "Nowe",
@@ -216,6 +231,8 @@ async function edytujZgloszenie(req, res) {
     osiedle_nazwa,
     kontrahent_nazwa,
     zglaszajacy_email,
+    konserwator_email,
+    konserwator_nazwa,
     zdjecia,
     kategoria_usterki_id,
     status,
@@ -227,7 +244,7 @@ async function edytujZgloszenie(req, res) {
   const update = await db.query(
     `UPDATE zgloszenia
      SET tytul=?, opis=?, kontrahent_id=?, osiedle_nazwa=?, kontrahent_nazwa=?, zglaszajacy_email=?, zdjecia_json=?,
-         kategoria_usterki_id=?, status=?, priorytet=?, updated_at=NOW()
+         konserwator_email=?, konserwator_nazwa=?, kategoria_usterki_id=?, status=?, priorytet=?, updated_at=NOW()
      WHERE id=?`,
     [
       String(tytul || "").trim(),
@@ -237,6 +254,8 @@ async function edytujZgloszenie(req, res) {
       String(kontrahent_nazwa || "").trim() || null,
       String(zglaszajacy_email || req.uzytkownik?.email || "").trim() || null,
       zdjeciaJson,
+      String(konserwator_email || "").trim() || null,
+      String(konserwator_nazwa || "").trim() || null,
       kategoria_usterki_id || null,
       status || "Nowe",
       priorytet || "Normalny",
@@ -273,4 +292,64 @@ async function usunZgloszenie(req, res) {
   return res.json({ komunikat: "Zgłoszenie zostało usunięte." });
 }
 
-module.exports = { listaZgloszen, listaOpcjiZgloszen, utworzZgloszenie, edytujZgloszenie, usunZgloszenie };
+async function wyslijMailDlaZgloszenia(req, res) {
+  await zapewnijRozszerzonaTabeleZgloszen();
+
+  const {
+    tytul,
+    opis,
+    osiedle_nazwa,
+    kontrahent_nazwa,
+    kategoria_nazwa,
+    kategoria_usterki_nazwa,
+    priorytet,
+    status,
+    zglaszajacy_email,
+    konserwator_email,
+    konserwator_nazwa
+  } = req.body || {};
+
+  const emailZglaszajacego = String(zglaszajacy_email || req.uzytkownik?.email || "").trim().toLowerCase();
+  const emailKonserwatora = String(konserwator_email || "").trim().toLowerCase();
+  const nazwaKonserwatora = String(konserwator_nazwa || "").trim();
+
+  if (!String(tytul || "").trim()) {
+    return res.status(400).json({ blad: "Podaj tytul zgloszenia przed wysylka." });
+  }
+
+  if (!String(osiedle_nazwa || "").trim()) {
+    return res.status(400).json({ blad: "Wybierz osiedle przed wysylka." });
+  }
+
+  if (!emailZglaszajacego) {
+    return res.status(400).json({ blad: "Nie znaleziono adresu email zalogowanego uzytkownika." });
+  }
+
+  if (!emailKonserwatora) {
+    return res.status(400).json({ blad: "Wybierz konserwatora z przypisanym adresem email." });
+  }
+
+  await wyslijMailZgloszenia({
+    doKogo: [emailZglaszajacego, emailKonserwatora],
+    zglaszajacyEmail: emailZglaszajacego,
+    konserwatorEmail: emailKonserwatora,
+    konserwatorNazwa: nazwaKonserwatora,
+    formularz: {
+      tytul,
+      opis,
+      osiedle_nazwa,
+      kontrahent_nazwa,
+      kategoria_nazwa,
+      kategoria_usterki_nazwa,
+      priorytet,
+      status
+    }
+  });
+
+  return res.json({
+    komunikat: "Mail ze zgloszeniem zostal wyslany.",
+    odbiorcy: [emailZglaszajacego, emailKonserwatora]
+  });
+}
+
+module.exports = { listaZgloszen, listaOpcjiZgloszen, utworzZgloszenie, edytujZgloszenie, usunZgloszenie, wyslijMailDlaZgloszenia };

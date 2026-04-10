@@ -15,7 +15,7 @@ async function listaUzytkownikow(_req, res) {
 
 async function listaTechnikow(_req, res) {
   const wynik = await db.query(
-    "SELECT id, imie_nazwisko FROM uzytkownicy WHERE rola = 'Technik' AND aktywny = 1 ORDER BY imie_nazwisko"
+    "SELECT id, email, imie_nazwisko FROM uzytkownicy WHERE rola = 'Technik' AND aktywny = 1 ORDER BY imie_nazwisko"
   );
   return res.json(wynik.rows);
 }
