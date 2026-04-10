@@ -77,6 +77,47 @@ function formatujDateCzas(data) {
   });
 }
 
+async function rozwiazUrlZdjecia(zdjecie) {
+  const bucket = String(zdjecie?.bucket || BUCKET_ZDJEC).trim();
+  const path = String(zdjecie?.path || "").trim();
+  const obecnyUrl = String(zdjecie?.url || "").trim();
+
+  if (!czySupabaseSkonfigurowany || !supabase || !path) {
+    return obecnyUrl || "";
+  }
+
+  const { data: signedData, error: signedError } = await supabase.storage.from(bucket).createSignedUrl(path, 60 * 60 * 6);
+  if (!signedError && signedData?.signedUrl) {
+    return signedData.signedUrl;
+  }
+
+  const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(path);
+  return publicData?.publicUrl || obecnyUrl || "";
+}
+
+async function uzupelnijPodgladyZdjec(wpisy) {
+  const lista = Array.isArray(wpisy) ? wpisy : [];
+
+  return Promise.all(
+    lista.map(async (wpis) => {
+      const zdjecia = Array.isArray(wpis?.zdjecia) ? wpis.zdjecia : [];
+      if (!zdjecia.length) return wpis;
+
+      const zdjeciaZUrl = await Promise.all(
+        zdjecia.map(async (zdjecie) => ({
+          ...zdjecie,
+          url: await rozwiazUrlZdjecia(zdjecie)
+        }))
+      );
+
+      return {
+        ...wpis,
+        zdjecia: zdjeciaZUrl
+      };
+    })
+  );
+}
+
 async function wrzucZdjecie(plik, metadane = {}) {
   if (!czySupabaseSkonfigurowany || !supabase) {
     throw new Error("Supabase Storage nie jest skonfigurowany dla zdjęć zgłoszeń.");
@@ -184,11 +225,66 @@ export default function ZgloszeniaPage() {
   }, [q]);
 
   useEffect(() => {
+    let aktywny = true;
+
+    async function uzupelnijPodgladyListy() {
+      if (!lista.length) return;
+      const zUrl = await uzupelnijPodgladyZdjec(lista);
+      if (!aktywny) return;
+      setLista((poprzednie) => {
+        const poprzedniKlucz = JSON.stringify(poprzednie.map((wpis) => [wpis.id, (wpis.zdjecia || []).map((z) => z.url || z.path || z.name)]));
+        const nowyKlucz = JSON.stringify(zUrl.map((wpis) => [wpis.id, (wpis.zdjecia || []).map((z) => z.url || z.path || z.name)]));
+        return poprzedniKlucz === nowyKlucz ? poprzednie : zUrl;
+      });
+    }
+
+    uzupelnijPodgladyListy().catch(() => null);
+    return () => {
+      aktywny = false;
+    };
+  }, [lista]);
+
+  useEffect(() => {
     setFormularz((prev) => ({
       ...prev,
       zglaszajacy_email: prev.zglaszajacy_email || emailUzytkownika
     }));
   }, [emailUzytkownika]);
+
+  useEffect(() => {
+    let aktywny = true;
+
+    async function uzupelnijPodgladyFormularza() {
+      const zdjecia = Array.isArray(formularz.zdjecia) ? formularz.zdjecia : [];
+      if (!zdjecia.length) return;
+
+      const zUrl = await Promise.all(
+        zdjecia.map(async (zdjecie) => ({
+          ...zdjecie,
+          url: await rozwiazUrlZdjecia(zdjecie)
+        }))
+      );
+
+      if (!aktywny) return;
+
+      setFormularz((prev) => {
+        const poprzedniKlucz = JSON.stringify((prev.zdjecia || []).map((z) => z.url || z.path || z.name));
+        const nowyKlucz = JSON.stringify(zUrl.map((z) => z.url || z.path || z.name));
+        if (poprzedniKlucz === nowyKlucz) {
+          return prev;
+        }
+        return {
+          ...prev,
+          zdjecia: zUrl
+        };
+      });
+    }
+
+    uzupelnijPodgladyFormularza().catch(() => null);
+    return () => {
+      aktywny = false;
+    };
+  }, [formularz.zdjecia]);
 
   const przefiltrowaneOsiedla = useMemo(() => {
     const fraza = qOsiedle.trim().toLowerCase();
