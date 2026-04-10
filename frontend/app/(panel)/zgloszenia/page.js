@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   BuildingOffice2Icon,
   CameraIcon,
+  ChevronDownIcon,
   EnvelopeIcon,
   PhotoIcon,
   TrashIcon
@@ -246,6 +247,7 @@ export default function ZgloszeniaPage() {
   const [komunikat, setKomunikat] = useState("");
   const [zapisywanie, setZapisywanie] = useState(false);
   const [noweZdjecia, setNoweZdjecia] = useState([]);
+  const [czyListaOsiedliOtwarta, setCzyListaOsiedliOtwarta] = useState(false);
 
   async function odswiez() {
     setBlad("");
@@ -342,6 +344,7 @@ export default function ZgloszeniaPage() {
   function ustawOsiedle(osiedle) {
     const konserwator = znajdzKonserwatoraDlaOsiedla(osiedle, technicy);
     setQOsiedle(osiedle.osiedle_nazwa || "");
+    setCzyListaOsiedliOtwarta(false);
     setFormularz((prev) => ({
       ...prev,
       kontrahent_id: osiedle.id,
@@ -361,6 +364,7 @@ export default function ZgloszeniaPage() {
     setEdytowany(null);
     setQOsiedle("");
     setNoweZdjecia([]);
+    setCzyListaOsiedliOtwarta(false);
   }
 
   function dodajPliki(listaPlikow) {
@@ -462,6 +466,7 @@ export default function ZgloszeniaPage() {
     setEdytowany(wpis.id);
     setQOsiedle(wpis.osiedle_nazwa || "");
     setNoweZdjecia([]);
+    setCzyListaOsiedliOtwarta(false);
     setFormularz({
       tytul: wpis.tytul || "",
       opis: wpis.opis || "",
@@ -504,49 +509,64 @@ export default function ZgloszeniaPage() {
 
               <div className="space-y-2 md:col-span-2">
                 <label className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-400">Osiedle</label>
-                <input
-                  className="pole"
-                  placeholder="Wpisz albo wybierz osiedle"
-                  value={qOsiedle}
-                  onChange={(e) => {
-                    const wartosc = e.target.value;
-                    setQOsiedle(wartosc);
-                    setFormularz((prev) => ({
-                      ...prev,
-                      kontrahent_id: "",
-                      osiedle_nazwa: wartosc,
-                      kontrahent_nazwa: "",
-                      konserwator_email: "",
-                      konserwator_nazwa: "",
-                      status: "Nowe"
-                    }));
-                  }}
-                />
-                <div className="max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/20 p-2">
-                  {!przefiltrowaneOsiedla.length ? (
-                    <p className="px-2 py-3 text-sm text-slate-400">Brak osiedli do wybrania.</p>
-                  ) : (
-                    <div className="space-y-1">
-                      {przefiltrowaneOsiedla.slice(0, 18).map((osiedle) => (
-                        <button
-                          key={`${osiedle.id}-${osiedle.osiedle_nazwa}`}
-                          type="button"
-                          className={`flex w-full items-start justify-between gap-3 rounded-xl px-3 py-2 text-left transition ${
-                            String(formularz.kontrahent_id) === String(osiedle.id)
-                              ? "bg-emerald-500/12 text-emerald-100"
-                              : "bg-white/[0.03] text-slate-200 hover:bg-white/[0.06]"
-                          }`}
-                          onClick={() => ustawOsiedle(osiedle)}
-                        >
-                          <span>
-                            <span className="block font-medium">{osiedle.osiedle_nazwa}</span>
-                            <span className="mt-0.5 block text-xs text-slate-400">{osiedle.kontrahent_nazwa || "Bez kontrahenta"}</span>
-                          </span>
-                          <BuildingOffice2Icon className="mt-0.5 h-5 w-5 shrink-0 text-slate-500" />
-                        </button>
-                      ))}
+                <div className="relative">
+                  <div className="relative">
+                    <input
+                      className="pole pr-12"
+                      placeholder="Wpisz albo wybierz osiedle"
+                      value={qOsiedle}
+                      onFocus={() => setCzyListaOsiedliOtwarta(true)}
+                      onChange={(e) => {
+                        const wartosc = e.target.value;
+                        setQOsiedle(wartosc);
+                        setCzyListaOsiedliOtwarta(true);
+                        setFormularz((prev) => ({
+                          ...prev,
+                          kontrahent_id: "",
+                          osiedle_nazwa: wartosc,
+                          kontrahent_nazwa: "",
+                          konserwator_email: "",
+                          konserwator_nazwa: "",
+                          status: "Nowe"
+                        }));
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-400 transition hover:text-slate-200"
+                      onClick={() => setCzyListaOsiedliOtwarta((prev) => !prev)}
+                      aria-label="Pokaż listę osiedli"
+                    >
+                      <ChevronDownIcon className={`h-5 w-5 transition ${czyListaOsiedliOtwarta ? "rotate-180" : ""}`} />
+                    </button>
+                  </div>
+
+                  {czyListaOsiedliOtwarta ? (
+                    <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-slate-900 shadow-[0_20px_50px_rgba(15,23,42,0.45)]">
+                      {!przefiltrowaneOsiedla.length ? (
+                        <p className="px-4 py-3 text-sm text-slate-400">Brak osiedli do wybrania.</p>
+                      ) : (
+                        <div className="p-2">
+                          {przefiltrowaneOsiedla.slice(0, 18).map((osiedle) => (
+                            <button
+                              key={`${osiedle.id}-${osiedle.osiedle_nazwa}`}
+                              type="button"
+                              className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left transition ${
+                                String(formularz.kontrahent_id) === String(osiedle.id)
+                                  ? "bg-emerald-500/12 text-emerald-100"
+                                  : "text-slate-200 hover:bg-white/[0.06]"
+                              }`}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => ustawOsiedle(osiedle)}
+                            >
+                              <span className="font-medium">{osiedle.osiedle_nazwa}</span>
+                              <BuildingOffice2Icon className="h-5 w-5 shrink-0 text-slate-500" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
