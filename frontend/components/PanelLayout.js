@@ -104,7 +104,7 @@ export default function PanelLayout({ children }) {
         <div className="hidden md:block">
           <Sidebar />
         </div>
-        <section className="karta-szklana min-w-0 flex-1 overflow-hidden rounded-2xl p-3 sm:p-4 md:p-6">
+        <section className="karta-szklana min-w-0 flex-1 overflow-hidden rounded-2xl p-3 sm:p-4 md:overflow-visible md:p-6">
           {children}
         </section>
       </div>
