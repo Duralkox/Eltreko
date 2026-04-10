@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { zapytanieApi } from "../../../lib/api";
-import { czyZapamietajMnie, pobierzSesje, zapiszSesje } from "../../../lib/auth";
+import { czyZapamietajMnie, pobierzSesje, zapiszSesje, wyczyscSesje } from "../../../lib/auth";
 import { supabase } from "../../../lib/supabase";
 
 function czyPoprawnyEmail(wartosc) {
@@ -72,6 +72,13 @@ export default function StronaLogowania() {
       } = await supabase.auth.getSession();
 
       if (session?.access_token) {
+        if (!czyZapamietajMnie()) {
+          await wyczyscSesje();
+          if (aktywny) {
+            setSprawdzanieSesji(false);
+          }
+          return;
+        }
         router.replace("/start");
         return;
       }

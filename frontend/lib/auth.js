@@ -11,6 +11,19 @@ const TTL_TOKENU_MS = 5000;
 let cacheTokenu = null;
 let cacheTokenuTs = 0;
 
+function pobierzPamiecSesji(trwala) {
+  if (typeof window === "undefined") return null;
+  return trwala ? window.localStorage : window.sessionStorage;
+}
+
+function wyczyscPamiecSesji() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(KLUCZ);
+  window.localStorage.removeItem(KLUCZ_AKTYWNOSCI);
+  window.sessionStorage.removeItem(KLUCZ);
+  window.sessionStorage.removeItem(KLUCZ_AKTYWNOSCI);
+}
+
 export function czyZapamietajMnie() {
   if (typeof window === "undefined") return false;
   return localStorage.getItem(KLUCZ_ZAPAMIETAJ) === "1";
@@ -28,21 +41,24 @@ export function ustawZapamietajMnie(wartosc) {
 export function zapiszSesje(dane, opcje = {}) {
   const zapamietaj = opcje.zapamietaj === true;
   ustawZapamietajMnie(zapamietaj);
-  localStorage.setItem(KLUCZ, JSON.stringify(dane));
-  localStorage.setItem(KLUCZ_AKTYWNOSCI, String(Date.now()));
+  wyczyscPamiecSesji();
+  const pamiec = pobierzPamiecSesji(zapamietaj);
+  pamiec?.setItem(KLUCZ, JSON.stringify(dane));
+  pamiec?.setItem(KLUCZ_AKTYWNOSCI, String(Date.now()));
   cacheTokenu = dane?.token || null;
   cacheTokenuTs = Date.now();
 }
 
 export function dotknijSesjeAktywnosc() {
   if (typeof window === "undefined") return;
-  localStorage.setItem(KLUCZ_AKTYWNOSCI, String(Date.now()));
+  const pamiec = pobierzPamiecSesji(czyZapamietajMnie());
+  pamiec?.setItem(KLUCZ_AKTYWNOSCI, String(Date.now()));
 }
 
 export function czySesjaWygasla() {
   if (typeof window === "undefined") return false;
   if (czyZapamietajMnie()) return false;
-  const znacznik = Number(localStorage.getItem(KLUCZ_AKTYWNOSCI) || 0);
+  const znacznik = Number(window.sessionStorage.getItem(KLUCZ_AKTYWNOSCI) || 0);
   if (!znacznik) return false;
   return Date.now() - znacznik > LIMIT_BEZCZYNNOSCI_MS;
 }
@@ -50,17 +66,18 @@ export function czySesjaWygasla() {
 export function pobierzSesje() {
   if (typeof window === "undefined") return null;
   if (czySesjaWygasla()) {
-    localStorage.removeItem(KLUCZ);
-    localStorage.removeItem(KLUCZ_AKTYWNOSCI);
+    window.sessionStorage.removeItem(KLUCZ);
+    window.sessionStorage.removeItem(KLUCZ_AKTYWNOSCI);
     return null;
   }
-  const surowe = localStorage.getItem(KLUCZ);
+  const pamiec = pobierzPamiecSesji(czyZapamietajMnie());
+  const surowe = pamiec?.getItem(KLUCZ);
   if (!surowe) return null;
   try {
     return JSON.parse(surowe);
   } catch (_error) {
-    localStorage.removeItem(KLUCZ);
-    localStorage.removeItem(KLUCZ_AKTYWNOSCI);
+    pamiec?.removeItem(KLUCZ);
+    pamiec?.removeItem(KLUCZ_AKTYWNOSCI);
     return null;
   }
 }
@@ -93,7 +110,8 @@ export async function pobierzTokenAutoryzacji() {
   }
 
   if (lokalnaSesja) {
-    localStorage.setItem(
+    const pamiec = pobierzPamiecSesji(czyZapamietajMnie());
+    pamiec?.setItem(
       KLUCZ,
       JSON.stringify({
         ...lokalnaSesja,
@@ -109,8 +127,7 @@ export async function pobierzTokenAutoryzacji() {
 }
 
 export function wyczyscSesje() {
-  localStorage.removeItem(KLUCZ);
-  localStorage.removeItem(KLUCZ_AKTYWNOSCI);
+  wyczyscPamiecSesji();
   localStorage.removeItem(KLUCZ_ZAPAMIETAJ);
   cacheTokenu = null;
   cacheTokenuTs = 0;
