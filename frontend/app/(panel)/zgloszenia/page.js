@@ -522,13 +522,6 @@ export default function ZgloszeniaPage() {
                     }));
                   }}
                 />
-                {formularz.kontrahent_id ? (
-                  <div className="rounded-2xl border border-emerald-400/14 bg-emerald-500/[0.06] px-4 py-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-200/80">Wybrane osiedle</p>
-                    <p className="mt-2 text-lg font-semibold text-slate-50">{formularz.osiedle_nazwa || "-"}</p>
-                    <p className="mt-1 text-sm text-slate-300">{formularz.kontrahent_nazwa || "Bez kontrahenta"}</p>
-                  </div>
-                ) : null}
                 <div className="max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/20 p-2">
                   {!przefiltrowaneOsiedla.length ? (
                     <p className="px-2 py-3 text-sm text-slate-400">Brak osiedli do wybrania.</p>
