@@ -325,31 +325,35 @@ async function wyslijMailDlaZgloszenia(req, res) {
     return res.status(400).json({ blad: "Nie znaleziono adresu email zalogowanego uzytkownika." });
   }
 
-  if (!emailKonserwatora) {
-    return res.status(400).json({ blad: "Wybierz konserwatora z przypisanym adresem email." });
+  const odbiorcy = [emailZglaszajacego, emailKonserwatora].filter(Boolean);
+
+  try {
+    await wyslijMailZgloszenia({
+      doKogo: odbiorcy,
+      zglaszajacyEmail: emailZglaszajacego,
+      konserwatorEmail: emailKonserwatora,
+      konserwatorNazwa: nazwaKonserwatora,
+      formularz: {
+        tytul,
+        opis,
+        osiedle_nazwa,
+        kontrahent_nazwa,
+        kategoria_nazwa,
+        kategoria_usterki_nazwa,
+        priorytet,
+        status
+      }
+    });
+
+    return res.json({
+      komunikat: "Mail ze zgloszeniem zostal wyslany.",
+      odbiorcy
+    });
+  } catch (error) {
+    return res.status(502).json({
+      blad: error?.message || "Nie udalo sie wyslac maila przez MailerSend."
+    });
   }
-
-  await wyslijMailZgloszenia({
-    doKogo: [emailZglaszajacego, emailKonserwatora],
-    zglaszajacyEmail: emailZglaszajacego,
-    konserwatorEmail: emailKonserwatora,
-    konserwatorNazwa: nazwaKonserwatora,
-    formularz: {
-      tytul,
-      opis,
-      osiedle_nazwa,
-      kontrahent_nazwa,
-      kategoria_nazwa,
-      kategoria_usterki_nazwa,
-      priorytet,
-      status
-    }
-  });
-
-  return res.json({
-    komunikat: "Mail ze zgloszeniem zostal wyslany.",
-    odbiorcy: [emailZglaszajacego, emailKonserwatora]
-  });
 }
 
 module.exports = { listaZgloszen, listaOpcjiZgloszen, utworzZgloszenie, edytujZgloszenie, usunZgloszenie, wyslijMailDlaZgloszenia };

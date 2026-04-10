@@ -406,11 +406,6 @@ export default function ZgloszeniaPage() {
       return;
     }
 
-    if (!formularz.konserwator_email) {
-      setBlad("Wybierz konserwatora z listy.");
-      return;
-    }
-
     if (!emailUzytkownika) {
       setBlad("Nie znaleziono adresu email zalogowanego użytkownika.");
       return;
@@ -692,7 +687,7 @@ export default function ZgloszeniaPage() {
                 </div>
                 <div>
                   <p className="text-base font-semibold text-slate-100">Mail zgłoszeniowy</p>
-                  <p className="mt-1 text-sm text-slate-400">Mail poleci do Ciebie i do wybranego konserwatora.</p>
+                  <p className="mt-1 text-sm text-slate-400">Mail poleci do Ciebie, a opcjonalnie także do wybranego konserwatora.</p>
                 </div>
               </div>
 
@@ -700,7 +695,7 @@ export default function ZgloszeniaPage() {
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Odbiorcy</p>
                   <p className="mt-2 text-sm text-slate-100">
-                    {[emailUzytkownika || null, formularz.konserwator_email || null].filter(Boolean).join(", ") || "Wybierz konserwatora."}
+                    {[emailUzytkownika || null, formularz.konserwator_email || null].filter(Boolean).join(", ") || "Brak odbiorców."}
                   </p>
                 </div>
                 <div>
