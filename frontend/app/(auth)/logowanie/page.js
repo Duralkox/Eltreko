@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { zapytanieApi } from "../../../lib/api";
-import { zapiszSesje } from "../../../lib/auth";
+import { czyZapamietajMnie, zapiszSesje } from "../../../lib/auth";
 import { supabase } from "../../../lib/supabase";
 
 function czyPoprawnyEmail(wartosc) {
@@ -33,6 +33,12 @@ export default function StronaLogowania() {
   const [pokazEasterEgg, setPokazEasterEgg] = useState(false);
   const [ladowanie, setLadowanie] = useState(false);
   const [trybResetu, setTrybResetu] = useState(false);
+  const [zapamietaj, setZapamietaj] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setZapamietaj(czyZapamietajMnie());
+  }, []);
 
   useEffect(() => {
     if (!supabase || typeof window === "undefined") {
@@ -101,10 +107,13 @@ export default function StronaLogowania() {
         }
       });
 
-      zapiszSesje({
-        token: accessToken,
-        uzytkownik: sesjaApi.uzytkownik
-      });
+      zapiszSesje(
+        {
+          token: accessToken,
+          uzytkownik: sesjaApi.uzytkownik
+        },
+        { zapamietaj }
+      );
 
       router.push("/start");
     } catch (error) {
@@ -221,7 +230,9 @@ export default function StronaLogowania() {
           {trybResetu ? "Ustaw nowe hasło" : "Bezpieczne logowanie"}
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-300/80">
-          {trybResetu ? "Zmień hasło i wróć do pracy w panelu technicznym." : "Dostęp do dokumentów technicznych i panelu serwisowego."}
+          {trybResetu
+            ? "Zmień hasło i wróć do pracy w panelu technicznym."
+            : "Dostęp do dokumentów technicznych i panelu serwisowego."}
         </p>
       </div>
 
@@ -285,6 +296,16 @@ export default function StronaLogowania() {
                 required
               />
             </div>
+
+            <label className="flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-white/20 bg-transparent accent-emerald-400"
+                checked={zapamietaj}
+                onChange={(e) => setZapamietaj(e.target.checked)}
+              />
+              <span>Zapamiętaj mnie</span>
+            </label>
           </>
         )}
 

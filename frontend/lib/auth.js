@@ -4,13 +4,30 @@ import { supabase } from "./supabase";
 
 const KLUCZ = "eltreko_sesja";
 const KLUCZ_AKTYWNOSCI = "eltreko_sesja_aktywnosc";
+const KLUCZ_ZAPAMIETAJ = "eltreko_sesja_zapamietaj";
 const LIMIT_BEZCZYNNOSCI_MS = 15 * 60 * 1000;
 const TTL_TOKENU_MS = 5000;
 
 let cacheTokenu = null;
 let cacheTokenuTs = 0;
 
-export function zapiszSesje(dane) {
+export function czyZapamietajMnie() {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(KLUCZ_ZAPAMIETAJ) === "1";
+}
+
+export function ustawZapamietajMnie(wartosc) {
+  if (typeof window === "undefined") return;
+  if (wartosc) {
+    localStorage.setItem(KLUCZ_ZAPAMIETAJ, "1");
+    return;
+  }
+  localStorage.removeItem(KLUCZ_ZAPAMIETAJ);
+}
+
+export function zapiszSesje(dane, opcje = {}) {
+  const zapamietaj = opcje.zapamietaj === true;
+  ustawZapamietajMnie(zapamietaj);
   localStorage.setItem(KLUCZ, JSON.stringify(dane));
   localStorage.setItem(KLUCZ_AKTYWNOSCI, String(Date.now()));
   cacheTokenu = dane?.token || null;
@@ -24,6 +41,7 @@ export function dotknijSesjeAktywnosc() {
 
 export function czySesjaWygasla() {
   if (typeof window === "undefined") return false;
+  if (czyZapamietajMnie()) return false;
   const znacznik = Number(localStorage.getItem(KLUCZ_AKTYWNOSCI) || 0);
   if (!znacznik) return false;
   return Date.now() - znacznik > LIMIT_BEZCZYNNOSCI_MS;
@@ -93,6 +111,7 @@ export async function pobierzTokenAutoryzacji() {
 export function wyczyscSesje() {
   localStorage.removeItem(KLUCZ);
   localStorage.removeItem(KLUCZ_AKTYWNOSCI);
+  localStorage.removeItem(KLUCZ_ZAPAMIETAJ);
   cacheTokenu = null;
   cacheTokenuTs = 0;
   if (supabase) {
